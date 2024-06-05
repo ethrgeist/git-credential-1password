@@ -25,8 +25,9 @@ type OpItemList []OpItem
 
 // versioning is not yet implemented
 var (
-	verbose bool
-	version = "main"
+	prefix      string
+	opItemFlags []string
+	version     = "main"
 )
 
 // GetField returns the value of the field with the given label
@@ -50,16 +51,26 @@ func getVersion() string {
 
 // PrintVersion prints the version of the binary
 func PrintVersion() {
-	if verbose {
-		fmt.Fprintf(os.Stderr, "git-credential-1password %s\n", getVersion())
-	}
+	fmt.Fprintf(os.Stderr, "git-credential-1password %s\n", getVersion())
+}
+
+// get 1password item name
+func itemName(host string) string {
+	return fmt.Sprintf("%s%s", prefix, host)
+}
+
+// build a exec.Cmd for "op item" sub command including additional flags
+func buildOpItemCommand(subcommand string, args ...string) *exec.Cmd {
+	cmdArgs := []string{"item", subcommand}
+	cmdArgs = append(cmdArgs, opItemFlags...)
+	cmdArgs = append(cmdArgs, args...)
+	return exec.Command("op", cmdArgs...)
 }
 
 // opGetItem runs "op item get --format json" command with the given name
 func opGetItem(n string) (OpItemList, error) {
 	// --fields username,password limits the output to only username and password
-	opItemGet := exec.Command("op", "item", "get", "--format", "json", "--fields", "username,password", n)
-
+	opItemGet := buildOpItemCommand("get", "--format", "json", "--fields", "username,password", n)
 	opItemRaw, err := opItemGet.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("opItemGet failed with %s\n%+s", err, opItemRaw)
@@ -102,6 +113,11 @@ func ReadLines() (inputs map[string]string) {
 }
 
 func main() {
+	accountFlag := flag.String("account", "", "1Password account")
+	vaultFlag := flag.String("vault", "", "1Password vault")
+	prefixFlag := flag.String("prefix", "", "1Password item name prefix")
+	versionFlag := flag.Bool("version", false, "Print version")
+
 	flag.Usage = func() {
 		PrintVersion()
 		fmt.Fprintln(os.Stderr, "usage: git credential-1password [<options>] <action>")
@@ -117,10 +133,25 @@ func main() {
 		fmt.Fprintln(os.Stderr, "See also https://github.com/ethrgeist/git-credential-1password")
 	}
 	flag.Parse()
+
+	if *versionFlag {
+		PrintVersion()
+		os.Exit(0)
+	}
+
 	args := flag.Args()
 	if len(args) != 1 {
 		flag.Usage()
 		os.Exit(2)
+	}
+
+	// set global variables based on flags
+	prefix = *prefixFlag
+	if *accountFlag != "" {
+		opItemFlags = append(opItemFlags, "--account", *accountFlag)
+	}
+	if *vaultFlag != "" {
+		opItemFlags = append(opItemFlags, "--vault", *vaultFlag)
 	}
 
 	// git provides argument via stdin
@@ -137,7 +168,7 @@ func main() {
 
 		// run "op item get --format json" command with the host value
 		// this can only get, no other operations are allowed
-		opItem, err := opGetItem(gitInputs["host"])
+		opItem, err := opGetItem(itemName(gitInputs["host"]))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -153,24 +184,26 @@ func main() {
 	case "store":
 		gitInputs := ReadLines()
 
-		item, _ := opGetItem(gitInputs["host"])
+		item, _ := opGetItem(itemName(gitInputs["host"]))
 		if item == nil {
 			// run "op create item" command with the host value
-			opCreate, err := exec.Command("op", "item", "create", "--category=Login", "--title="+gitInputs["host"], "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], "username="+gitInputs["username"], "password="+gitInputs["password"]).CombinedOutput()
+			cmd := buildOpItemCommand("create", "--category=Login", "--title="+itemName(gitInputs["host"]), "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], "username="+gitInputs["username"], "password="+gitInputs["password"])
+			output, err := cmd.CombinedOutput()
 			if err != nil {
-				log.Fatalf("op create item failed with %s %s", err, opCreate)
+				log.Fatalf("op item create failed with %s %s", err, output)
 			}
 		} else {
 			// run "op create edit" command to update the item
-			opEdit, err := exec.Command("op", "item", "edit", gitInputs["host"], "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], "username="+gitInputs["username"], "password="+gitInputs["password"]).CombinedOutput()
+			cmd := buildOpItemCommand("edit", itemName(gitInputs["host"]), "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], "username="+gitInputs["username"], "password="+gitInputs["password"])
+			output, err := cmd.CombinedOutput()
 			if err != nil {
-				log.Fatalf("op edit item failed with %s %s", err, opEdit)
+				log.Fatalf("op item edit failed with %s %s", err, output)
 			}
 		}
 	case "erase":
 		gitInputs := ReadLines()
 		// run "op delete item" command with the host value
-		exec.Command("op", "item", "delete", gitInputs["host"]).CombinedOutput()
+		buildOpItemCommand("delete", itemName(gitInputs["host"])).Run()
 	default:
 		// unknown argument
 		log.Fatalf("It doesn't look like anything to me. (Unknown argument: %s)\n", args[0])

@@ -156,10 +156,15 @@ func main() {
 		item, _ := opGetItem(gitInputs["host"])
 		if item == nil {
 			// run "op create item" command with the host value
-			// this can only get, no other operations are allowed
 			opCreate, err := exec.Command("op", "item", "create", "--category=Login", "--title="+gitInputs["host"], "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], "username="+gitInputs["username"], "password="+gitInputs["password"]).CombinedOutput()
 			if err != nil {
 				log.Fatalf("op create item failed with %s %s", err, opCreate)
+			}
+		} else {
+			// run "op create edit" command to update the item
+			opEdit, err := exec.Command("op", "item", "edit", gitInputs["host"], "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], "username="+gitInputs["username"], "password="+gitInputs["password"]).CombinedOutput()
+			if err != nil {
+				log.Fatalf("op edit item failed with %s %s", err, opEdit)
 			}
 		}
 	case "erase":

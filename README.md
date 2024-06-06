@@ -92,6 +92,21 @@ then use the credentials stored in the item with the same name as the hostname.
 
 *Note: Depending on your OS, you might get prompted in different ways for your credentials.*
 
+## Optional Configuration
+
+If you want to use a specific account or vault, you can add `--account` and/or `--vault` to the command line arguments. If omitted,
+the default account and vault will be used.
+
+```bash
+git config --global credential.helper "1password --account=myaccount --vault=myvault"
+```
+
+You can also add a `--prefix` argument, to prefix all item names with a specific string. (i.e. use `--prefix="Git: "` to use `Git: gitlab.com` as the item name instead of `gitlab.com`).
+
+```bash
+git config --global credential.helper "1password --prefix='Git: '"
+```
+
 ## 🌳 Collaboration
 
 Feel free to open issues or pull requests.

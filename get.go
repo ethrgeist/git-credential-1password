@@ -15,20 +15,15 @@ func getCommand() {
 		log.Fatalf("host is missing in the input")
 	}
 
-	itemList, err := opListItems()
-	if err != nil {
-		log.Fatalf("op item list failed with %s", err)
-	}
-
-	item := itemList.FindByTitle(itemName(gitInputs["host"]))
+	itemId := findItemId(gitInputs["host"])
 	// if the host is not found, we exit with status code 1 to indicate that the host is not found
 	// we don't want to print anything to stdout in this case as it is not a real error
-	if item == nil {
+	if itemId == nil {
 		os.Exit(1)
 	}
 
 	// fetch the item from 1password using the id
-	opItem, err := opGetItem(item.Id)
+	opItem, err := opGetItem(*itemId)
 	if err != nil {
 		// we bail out if we can't get the item we just listed above - something is wrong and should be reported
 		log.Fatalf("op item get failed with %s", err)

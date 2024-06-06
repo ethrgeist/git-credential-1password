@@ -2,6 +2,10 @@ package main
 
 func eraseCommand() {
 	gitInputs := ReadLines()
-	// run "op delete item" command with the host value
-	buildOpItemCommand("delete", itemName(gitInputs["host"])).Run()
+
+	itemId := findItemId(gitInputs["host"])
+	if itemId != nil {
+		// run "op delete item" command with the found item id
+		buildOpItemCommand("delete", *itemId).Run()
+	}
 }

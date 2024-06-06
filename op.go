@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os/exec"
 )
 
@@ -100,4 +101,19 @@ func opGetItem(n string) (OpItem, error) {
 		return nil, fmt.Errorf("json.Unmarshal() failed with %s", err)
 	}
 	return opItem, nil
+}
+
+// find the item id for a given host
+func findItemId(host string) *string {
+	itemList, err := opListItems()
+	if err != nil {
+		log.Fatalf("op item list failed with %s", err)
+	}
+
+	item := itemList.FindByTitle(itemName(host))
+	if item == nil {
+		return nil
+	}
+
+	return &item.Id
 }

@@ -12,7 +12,7 @@ var (
 )
 
 const (
-	tags = "git-credential-1password"
+	TAG_MARKER = "git-credential-1password"
 )
 
 // OpItemField is a field in the output of "op item get --format json" command
@@ -24,10 +24,30 @@ type OpItemField struct {
 	Value string `json:"value,omitempty"`
 }
 
-type OpItemFieldList []OpItemField
+// result of an `op item get` command
+type OpItem []OpItemField
+
+// single item in the result of an `op item list` command (only id is interessting)
+type OpItemListResultItem struct {
+	Id    string `json:"id,omitempty"`
+	Title string `json:"title,omitempty"`
+}
+
+// result of an `op item list` command
+type OpItemListResult []OpItemListResultItem
+
+// search result for a specific host
+func (r OpItemListResult) FindByTitle(title string) *OpItemListResultItem {
+	for item := range r {
+		if r[item].Title == title {
+			return &r[item]
+		}
+	}
+	return nil
+}
 
 // GetField returns the value of the field with the given label
-func (i OpItemFieldList) GetField(label string) string {
+func (i OpItem) GetField(label string) string {
 	for _, field := range i {
 		if field.Label == label {
 			return field.Value
@@ -49,8 +69,24 @@ func buildOpItemCommand(subcommand string, args ...string) *exec.Cmd {
 	return exec.Command("op", cmdArgs...)
 }
 
+// opListItems runs "op list items --format json" command to get all items with their ids
+func opListItems() (*OpItemListResult, error) {
+	cmd := buildOpItemCommand("list", "--categories", "login", "--format", "json", "--tags", TAG_MARKER)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("opListItems failed with %s\n%+s", err, output)
+	}
+
+	var result OpItemListResult
+	if err = json.Unmarshal(output, &result); err != nil {
+		return nil, fmt.Errorf("json.Unmarshal() failed with %s", err)
+	}
+
+	return &result, nil
+}
+
 // opGetItem runs "op item get --format json" command with the given name
-func opGetItem(n string) (OpItemFieldList, error) {
+func opGetItem(n string) (OpItem, error) {
 	// --fields username,password limits the output to only username and password
 	opItemGet := buildOpItemCommand("get", "--format", "json", "--fields", "username,password", n)
 	opItemRaw, err := opItemGet.CombinedOutput()
@@ -59,7 +95,7 @@ func opGetItem(n string) (OpItemFieldList, error) {
 	}
 
 	// marhsal the raw output to OpItem struct
-	var opItem OpItemFieldList
+	var opItem OpItem
 	if err = json.Unmarshal(opItemRaw, &opItem); err != nil {
 		return nil, fmt.Errorf("json.Unmarshal() failed with %s", err)
 	}

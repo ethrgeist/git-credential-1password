@@ -15,13 +15,23 @@ func getCommand() {
 		log.Fatalf("host is missing in the input")
 	}
 
-	// run "op item get --format json" command with the host value
-	// this can only get, no other operations are allowed
-	opItem, err := opGetItem(itemName(gitInputs["host"]))
+	itemList, err := opListItems()
 	if err != nil {
-		// if the item is not found, we should exit with 1 to let git know
-		// its not an real error, we just don't have the credentials
+		log.Fatalf("op item list failed with %s", err)
+	}
+
+	item := itemList.FindByTitle(itemName(gitInputs["host"]))
+	// if the host is not found, we exit with status code 1 to indicate that the host is not found
+	// we don't want to print anything to stdout in this case as it is not a real error
+	if item == nil {
 		os.Exit(1)
+	}
+
+	// fetch the item from 1password using the id
+	opItem, err := opGetItem(item.Id)
+	if err != nil {
+		// we bail out if we can't get the item we just listed above - something is wrong and should be reported
+		log.Fatalf("op item get failed with %s", err)
 	}
 
 	// feed the username and password to git

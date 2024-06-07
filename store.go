@@ -7,7 +7,7 @@ import (
 func storeCommand() {
 	gitInputs := ReadLines()
 
-	itemId := findItemId(gitInputs["host"])
+	itemId := findItemId(gitInputs["protocol"], gitInputs["host"])
 	if itemId == nil {
 		// run "op item create" command with the host value
 		cmd := buildOpItemCommand("create", "--category=Login", "--tags="+TAG_MARKER, "--title="+itemName(gitInputs["host"]), "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], "username="+gitInputs["username"], "password="+gitInputs["password"])
@@ -17,8 +17,11 @@ func storeCommand() {
 		}
 	} else {
 		// run "op item edit" command to update the item
-		// note we don't set --tags here as our marker must be present already if the item was found and there might be other tags present
-		cmd := buildOpItemCommand("edit", *itemId, "--title="+itemName(gitInputs["host"]), "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], "username="+gitInputs["username"], "password="+gitInputs["password"])
+		// notes:
+		//   we don't set --tags here as our marker must be present already if the item was found and there might be other tags present
+		//   we don't set --title here as the user might have renamed the item
+		//   we don't set --url here as we use it to find the item and theirfore it must be correct already
+		cmd := buildOpItemCommand("edit", *itemId, "username="+gitInputs["username"], "password="+gitInputs["password"])
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			log.Fatalf("op item edit failed with %s %s", err, output)

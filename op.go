@@ -30,18 +30,22 @@ type OpItem []OpItemField
 
 // single item in the result of an `op item list` command (only id is interessting)
 type OpItemListResultItem struct {
-	Id    string `json:"id,omitempty"`
-	Title string `json:"title,omitempty"`
+	Id   string `json:"id,omitempty"`
+	URLs []struct {
+		Href string `json:"href,omitempty"`
+	} `json:"urls,omitempty"`
 }
 
 // result of an `op item list` command
 type OpItemListResult []OpItemListResultItem
 
 // search result for a specific host
-func (r OpItemListResult) FindByTitle(title string) *OpItemListResultItem {
+func (r OpItemListResult) FindByURL(url string) *OpItemListResultItem {
 	for item := range r {
-		if r[item].Title == title {
-			return &r[item]
+		for _, urlItem := range r[item].URLs {
+			if urlItem.Href == url {
+				return &r[item]
+			}
 		}
 	}
 	return nil
@@ -104,13 +108,13 @@ func opGetItem(n string) (OpItem, error) {
 }
 
 // find the item id for a given host
-func findItemId(host string) *string {
+func findItemId(protocol string, host string) *string {
 	itemList, err := opListItems()
 	if err != nil {
 		log.Fatalf("op item list failed with %s", err)
 	}
 
-	item := itemList.FindByTitle(itemName(host))
+	item := itemList.FindByURL(protocol + "://" + host)
 	if item == nil {
 		return nil
 	}

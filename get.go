@@ -15,7 +15,7 @@ func getCommand() {
 		log.Fatalf("host is missing in the input")
 	}
 
-	itemId := findItemId(gitInputs["host"])
+	itemId := findItemId(gitInputs["protocol"], gitInputs["host"])
 	// if the host is not found, we exit with status code 1 to indicate that the host is not found
 	// we don't want to print anything to stdout in this case as it is not a real error
 	if itemId == nil {

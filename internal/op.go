@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/json"
@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	prefix      string
-	opItemFlags []string
+	Prefix      string
+	OpItemFlags []string
 )
 
 const (
@@ -63,13 +63,13 @@ func (i OpItem) GetField(label string) string {
 
 // get 1password item name
 func itemName(host string) string {
-	return fmt.Sprintf("%s%s", prefix, host)
+	return fmt.Sprintf("%s%s", Prefix, host)
 }
 
 // build a exec.Cmd for "op item" sub command including additional flags
 func buildOpItemCommand(subcommand string, args ...string) *exec.Cmd {
 	cmdArgs := []string{"item", subcommand}
-	cmdArgs = append(cmdArgs, opItemFlags...)
+	cmdArgs = append(cmdArgs, OpItemFlags...)
 	cmdArgs = append(cmdArgs, args...)
 	return exec.Command("op", cmdArgs...)
 }

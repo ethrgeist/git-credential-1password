@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"runtime/debug"
+
+	"github.com/ethrgeist/git-credential-1password/internal"
 )
 
 // versioning is not yet implemented
@@ -28,7 +30,7 @@ func PrintVersion() {
 func main() {
 	accountFlag := flag.String("account", "", "1Password account")
 	vaultFlag := flag.String("vault", "", "1Password vault")
-	flag.StringVar(&prefix, "prefix", "", "1Password item name prefix")
+	flag.StringVar(&internal.Prefix, "prefix", "", "1Password item name prefix")
 	versionFlag := flag.Bool("version", false, "Print version")
 
 	flag.Usage = func() {
@@ -60,21 +62,21 @@ func main() {
 
 	// set global variables based on flags
 	if *accountFlag != "" {
-		opItemFlags = append(opItemFlags, "--account", *accountFlag)
+		internal.OpItemFlags = append(internal.OpItemFlags, "--account", *accountFlag)
 	}
 	if *vaultFlag != "" {
-		opItemFlags = append(opItemFlags, "--vault", *vaultFlag)
+		internal.OpItemFlags = append(internal.OpItemFlags, "--vault", *vaultFlag)
 	}
 
 	// git provides argument via stdin
 	// ref: https://git-scm.com/docs/gitcredentials
 	switch args[0] {
 	case "get":
-		getCommand()
+		internal.GetCommand()
 	case "store":
-		storeCommand()
+		internal.StoreCommand()
 	case "erase":
-		eraseCommand()
+		internal.EraseCommand()
 	default:
 		// unknown argument
 		log.Fatalf("It doesn't look like anything to me. (Unknown argument: %s)\n", args[0])

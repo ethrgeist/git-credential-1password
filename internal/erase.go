@@ -1,6 +1,6 @@
-package main
+package internal
 
-func eraseCommand() {
+func EraseCommand() {
 	gitInputs := ReadLines()
 
 	itemId := findItemId(gitInputs["protocol"], gitInputs["host"])

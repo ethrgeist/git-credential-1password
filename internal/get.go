@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func getCommand() {
+func GetCommand() {
 	// git sends the input to stdin
 	gitInputs := ReadLines()
 

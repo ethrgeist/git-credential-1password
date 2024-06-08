@@ -1,10 +1,10 @@
-package main
+package internal
 
 import (
 	"log"
 )
 
-func storeCommand() {
+func StoreCommand() {
 	gitInputs := ReadLines()
 
 	itemId := findItemId(gitInputs["protocol"], gitInputs["host"])

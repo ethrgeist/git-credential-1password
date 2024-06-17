@@ -107,6 +107,21 @@ You can also add a `--prefix` argument, to prefix all item names with a specific
 git config --global credential.helper "1password --prefix='Git: '"
 ```
 
+## How items in 1Password items are selected
+
+### Reading credentials
+
+The helper looks for items
+
+- in the selected Vault and Account
+- AND that have the tag `git-credential-1password`
+- AND that match protocol and host of the requested URL in the `url` field
+
+### Storing credentials
+
+- When the helper can find an item according to the rules above, it will update the `username` and `password` fields of the item.
+- Otherwise, it will create a new item with `url`, `username`, `password` fields, a `git-credential-1password` tag.
+
 ## 🌳 Collaboration
 
 Feel free to open issues or pull requests.

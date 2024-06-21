@@ -28,8 +28,8 @@ func PrintVersion() {
 }
 
 func main() {
-	accountFlag := flag.String("account", "", "1Password account")
-	vaultFlag := flag.String("vault", "", "1Password vault")
+	flag.StringVar(&internal.Account, "account", "my", "1Password account")
+	flag.StringVar(&internal.Vault, "vault", "Private", "1Password vault")
 	flag.StringVar(&internal.Prefix, "prefix", "", "1Password item name prefix")
 	versionFlag := flag.Bool("version", false, "Print version")
 
@@ -60,13 +60,9 @@ func main() {
 		os.Exit(2)
 	}
 
-	// set global variables based on flags
-	if *accountFlag != "" {
-		internal.OpItemFlags = append(internal.OpItemFlags, "--account", *accountFlag)
-	}
-	if *vaultFlag != "" {
-		internal.OpItemFlags = append(internal.OpItemFlags, "--vault", *vaultFlag)
-	}
+	// set op cli parameters based on flags
+	internal.OpItemFlags = append(internal.OpItemFlags, "--account", internal.Account)
+	internal.OpItemFlags = append(internal.OpItemFlags, "--vault", internal.Vault)
 
 	// git provides argument via stdin
 	// ref: https://git-scm.com/docs/gitcredentials

@@ -8,6 +8,8 @@ import (
 )
 
 var (
+	Account     string
+	Vault       string
 	Prefix      string
 	OpItemFlags []string
 )

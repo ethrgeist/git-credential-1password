@@ -15,7 +15,17 @@ func StoreCommand() {
 		if err != nil {
 			log.Fatalf("op item create failed with %s %s", err, output)
 		}
-	} else {
+		return
+	}
+
+	item, err := opGetItem(*itemId)
+	if err != nil {
+		log.Fatalf("op item get failed with %s", err)
+	}
+
+	// only update the item if the username or password has changed
+	if item.GetField("username") != gitInputs["username"] ||
+		item.GetField("password") != gitInputs["password"] {
 		// run "op item edit" command to update the item
 		// notes:
 		//   we don't set --tags here as our marker must be present already if the item was found and there might be other tags present

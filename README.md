@@ -75,6 +75,8 @@ If you have problems, make sure that the binary is [located in the path](https:/
 
 ## ⚙️ Usage
 
+*Fun fact: Did you know that you can use the [default Golang flags](https://www.antoniojgutierrez.com/posts/2021-05-14-short-and-long-options-in-go-flags-pkg/) with `-` and `--`? Well, now you do!*
+
 To use this credential helper, you need to configure Git to use it. You can do this by running:
 
 ```bash
@@ -119,7 +121,7 @@ The helper looks for items
 
 ### Storing credentials
 
-- When the helper can find an item according to the rules above, it will update the `username` and `password` fields of the item.
+- When the helper can find an item according to the rules above, it will update the `username` and `password` fields of the item if they changed.
 - Otherwise, it will create a new item with `url`, `username`, `password` fields, a `git-credential-1password` tag.
 
 ## 🌳 Collaboration

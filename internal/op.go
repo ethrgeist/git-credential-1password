@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	AllowErase    bool
 	OpPath        string
 )
 

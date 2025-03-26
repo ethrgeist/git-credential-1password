@@ -8,10 +8,7 @@ import (
 )
 
 var (
-	Account     string
-	Vault       string
-	Prefix      string
-	OpItemFlags []string
+	OpPath        string
 )
 
 const (
@@ -68,12 +65,20 @@ func itemName(host string) string {
 	return fmt.Sprintf("%s%s", Prefix, host)
 }
 
+// opCommand returns the path to the op binary
+func opCommand() string {
+	if OpPath == "" {
+		return "op" // Default to using "op" from PATH
+	}
+	return OpPath
+}
+
 // build a exec.Cmd for "op item" sub command including additional flags
 func buildOpItemCommand(subcommand string, args ...string) *exec.Cmd {
 	cmdArgs := []string{"item", subcommand}
 	cmdArgs = append(cmdArgs, OpItemFlags...)
 	cmdArgs = append(cmdArgs, args...)
-	return exec.Command("op", cmdArgs...)
+	return exec.Command(opCommand(), cmdArgs...)
 }
 
 // opListItems runs "op list items --format json" command to get all items with their ids

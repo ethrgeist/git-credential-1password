@@ -109,6 +109,14 @@ You can also add a `--prefix` argument, to prefix all item names with a specific
 git config --global credential.helper "1password --prefix='Git: '"
 ```
 
+In case your `op` binary is not in the PATH, you can use the `--op` argument to specify the path to the `op` binary.
+
+```bash
+git config --global credential.helper "1password --op='/usr/local/bin/op'"
+```
+
+*Note: On Windows, you must use forward slashes `/` in the path, e.g., `C:/temp/op.exe`, for Git to provide it to the credential helper.*
+
 ## How items in 1Password items are selected
 
 ### Reading credentials

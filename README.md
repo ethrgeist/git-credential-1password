@@ -132,10 +132,10 @@ to access the token.
 E.g., [GitHub requires a personal access token](https://docs.github.com/en/get-started/git-basics/about-remote-repositories#cloning-with-https-urls)
 instead of a password since [August 2021](https://github.blog/changelog/2021-08-12-git-password-authentication-is-shutting-down/).
 
-In case your `op` binary is not in the PATH, you can use the `--op` argument to specify the path to the `op` binary.
+In case your `op` binary is not in the PATH, you can use the `--op-path` argument to specify the path to the `op` binary.
 
 ```bash
-git config --global credential.helper "1password --op='/usr/local/bin/op'"
+git config --global credential.helper "1password --op-path='/usr/local/bin/op'"
 ```
 
 *Note: On Windows, you must use forward slashes `/` in the path, e.g., `C:/temp/op.exe`, for Git to provide it to the credential helper.*

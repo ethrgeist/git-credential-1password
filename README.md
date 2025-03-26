@@ -100,6 +100,10 @@ If you want to use a specific account or vault, you can add `--account` and/or `
 the default account and vault will be used.
 
 ```bash
+git config --global credential.helper "1password --account=myaccount --vault='myvault with spaces'"
+```
+
+*Note: Sometimes accessing a vault by the account mail address does not work, so you might have to use the account ID.*
 
 `erase` is disabled by default, as it will remove the matching 1Password item. If you want to enable it, you can
 add `-erase=true` to the command line arguments.
@@ -108,7 +112,8 @@ add `-erase=true` to the command line arguments.
 git config --global credential.helper "1password --erase=true"
 ```
 
-You can also add a `--prefix` argument, to prefix all item names with a specific string. (i.e. use `--prefix="Git: "` to use `Git: gitlab.com` as the item name instead of `gitlab.com`).
+You can also add a `--prefix` argument, to prefix all item names with a specific string. (i.e. use `--prefix="Git: "` to
+use `Git: gitlab.com` as the item name instead of `gitlab.com`).
 
 ```bash
 git config --global credential.helper "1password --prefix='Git: '"

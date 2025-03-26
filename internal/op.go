@@ -8,8 +8,14 @@ import (
 )
 
 var (
+	Account       string
+	Vault         string
+	Prefix        string
+	NameField     string
+	PasswordField string
 	AllowErase    bool
 	OpPath        string
+	OpItemFlags   []string
 )
 
 const (
@@ -101,7 +107,8 @@ func opListItems() (*OpItemListResult, error) {
 // opGetItem runs "op item get --format json" command with the given name
 func opGetItem(n string) (OpItem, error) {
 	// --fields username,password limits the output to only username and password
-	opItemGet := buildOpItemCommand("get", "--format", "json", "--fields", "username,password", n)
+	fields := fmt.Sprintf("%s,%s", NameField, PasswordField)
+	opItemGet := buildOpItemCommand("get", "--format", "json", "--fields", fields, n)
 	opItemRaw, err := opItemGet.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("opItemGet failed with %s\n%+s", err, opItemRaw)

@@ -30,8 +30,8 @@ func GetCommand() {
 	}
 
 	// feed the username and password to git
-	username := opItem.GetField("username")
-	password := opItem.GetField("password")
+	username := opItem.GetField(NameField)
+	password := opItem.GetField(PasswordField)
 	if username == "" || password == "" {
 		log.Fatalf("username or password is empty, is the item named correctly?")
 	}

@@ -21,7 +21,7 @@ Item name must the same as the hostname of the repository you are authenticating
 
 The [arguments](https://git-scm.com/docs/gitcredentials) `get`, `store`, and `erase` are supported.
 
-**⚠️ Danger: `erase` will remove the 1Password item matching the hostname!**
+**⚠️ Danger: `erase` will remove the 1Password item matching the hostname! It's disabled by default, see optional configuration**
 
 ### 🚧 Why Go?
 
@@ -100,7 +100,12 @@ If you want to use a specific account or vault, you can add `--account` and/or `
 the default account and vault will be used.
 
 ```bash
-git config --global credential.helper "1password --account=myaccount --vault=myvault"
+
+`erase` is disabled by default, as it will remove the matching 1Password item. If you want to enable it, you can
+add `-erase=true` to the command line arguments.
+
+```bash
+git config --global credential.helper "1password --erase=true"
 ```
 
 You can also add a `--prefix` argument, to prefix all item names with a specific string. (i.e. use `--prefix="Git: "` to use `Git: gitlab.com` as the item name instead of `gitlab.com`).

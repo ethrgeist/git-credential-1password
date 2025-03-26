@@ -31,6 +31,7 @@ func main() {
 	flag.StringVar(&internal.Account, "account", "my", "1Password account")
 	flag.StringVar(&internal.Vault, "vault", "Private", "1Password vault")
 	flag.StringVar(&internal.Prefix, "prefix", "", "1Password item name prefix")
+	flag.BoolVar(&internal.AllowErase, "erase", false, "Allow erasing credentials")
 	flag.StringVar(&internal.OpPath, "op-path", "", "Path to the op binary")
 	versionFlag := flag.Bool("version", false, "Print version")
 
@@ -73,6 +74,11 @@ func main() {
 	case "store":
 		internal.StoreCommand()
 	case "erase":
+		if !internal.AllowErase {
+			log.Fatalf("To enable erasing credentials, use the -erase true flag")
+			flag.Usage()
+			os.Exit(2)
+		}
 		internal.EraseCommand()
 	default:
 		// unknown argument

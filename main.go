@@ -31,6 +31,7 @@ func main() {
 	flag.StringVar(&internal.Account, "account", "my", "1Password account")
 	flag.StringVar(&internal.Vault, "vault", "Private", "1Password vault")
 	flag.StringVar(&internal.Prefix, "prefix", "", "1Password item name prefix")
+	flag.StringVar(&internal.OpPath, "op-path", "", "Path to the op binary")
 	versionFlag := flag.Bool("version", false, "Print version")
 
 	flag.Usage = func() {

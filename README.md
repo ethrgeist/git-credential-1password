@@ -119,6 +119,19 @@ use `Git: gitlab.com` as the item name instead of `gitlab.com`).
 git config --global credential.helper "1password --prefix='Git: '"
 ```
 
+In case you want to use a different field name for the username or password, you can use the `--username-field` and
+`--password-field` arguments.
+
+```bash
+git config --global credential.helper "1password --username-field='email' --password-field='pass'"
+```
+
+Since providers might require a personal access token instead of a password, you can use the `--password-field` argument
+to access the token.
+
+E.g., [GitHub requires a personal access token](https://docs.github.com/en/get-started/git-basics/about-remote-repositories#cloning-with-https-urls)
+instead of a password since [August 2021](https://github.blog/changelog/2021-08-12-git-password-authentication-is-shutting-down/).
+
 In case your `op` binary is not in the PATH, you can use the `--op` argument to specify the path to the `op` binary.
 
 ```bash

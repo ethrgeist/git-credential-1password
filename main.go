@@ -31,7 +31,7 @@ func main() {
 	flag.StringVar(&internal.Account, "account", "my", "1Password account")
 	flag.StringVar(&internal.Vault, "vault", "Private", "1Password vault")
 	flag.StringVar(&internal.Prefix, "prefix", "", "1Password item name prefix")
-	flag.StringVar(&internal.NameField, "name-field", "username", "What field to use for the username")
+	flag.StringVar(&internal.NameField, "username-field", "username", "What field to use for the username")
 	flag.StringVar(&internal.PasswordField, "password-field", "password", "What field to use for the password")
 	flag.BoolVar(&internal.AllowErase, "erase", false, "Allow erasing credentials")
 	flag.StringVar(&internal.OpPath, "op-path", "", "Path to the op binary")

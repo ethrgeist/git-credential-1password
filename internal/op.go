@@ -11,7 +11,7 @@ var (
 	Account       string
 	Vault         string
 	Prefix        string
-	NameField     string
+	UsernameField string
 	PasswordField string
 	AllowErase    bool
 	OpPath        string
@@ -107,7 +107,7 @@ func opListItems() (*OpItemListResult, error) {
 // opGetItem runs "op item get --format json" command with the given name
 func opGetItem(n string) (OpItem, error) {
 	// --fields username,password limits the output to only username and password
-	fields := fmt.Sprintf("%s,%s", NameField, PasswordField)
+	fields := fmt.Sprintf("%s,%s", UsernameField, PasswordField)
 	opItemGet := buildOpItemCommand("get", "--format", "json", "--fields", fields, n)
 	opItemRaw, err := opItemGet.CombinedOutput()
 	if err != nil {

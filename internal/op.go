@@ -108,7 +108,7 @@ func opListItems() (*OpItemListResult, error) {
 func opGetItem(n string) (OpItem, error) {
 	// --fields username,password limits the output to only username and password
 	fields := fmt.Sprintf("%s,%s", UsernameField, PasswordField)
-	opItemGet := buildOpItemCommand("get", "--format", "json", "--fields", fields, n)
+	opItemGet := buildOpItemCommand("get", "--format", "json", "--reveal", "--fields", fields, n)
 	opItemRaw, err := opItemGet.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("opItemGet failed with %s\n%+s", err, opItemRaw)

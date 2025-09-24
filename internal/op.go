@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"runtime"
 )
 
 var (
@@ -74,7 +75,9 @@ func itemName(host string) string {
 
 // opCommand returns the path to the op binary
 func opCommand() string {
-	if OpPath == "" {
+	if OpPath == "" && runtime.GOOS == "windows" {
+		return "op.exe" // Default to using "op" from PATH, but with .exe suffix on Windows
+	} else if OpPath == "" {
 		return "op" // Default to using "op" from PATH
 	}
 	return OpPath

@@ -22,15 +22,15 @@ func ReadLines() (inputs map[string]string) {
 			break
 		}
 
-		// create a slice of strings by splitting the line
-		parts := strings.SplitN(line, "=", 2)
-
-		// see if this can a key value pair
-		if len(parts) == 2 {
-			inputs[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
-		} else {
+		// split the line by the first '=' and create a key value pair
+		key, val, ok := strings.Cut(line, "=")
+		if !ok {
 			log.Fatalf("Invalid input: %s", line)
 		}
+		key = strings.TrimSpace(key)
+		val = strings.TrimSpace(val)
+
+		inputs[key] = val
 	}
 	return inputs
 }

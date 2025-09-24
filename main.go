@@ -65,9 +65,8 @@ func main() {
 	}
 
 	if internal.UsernameField == "" || internal.PasswordField == "" {
-		log.Fatalf("username and password field must be set")
 		flag.Usage()
-		os.Exit(2)
+		log.Fatalf("username and password field must be set")
 	}
 
 	// set op cli parameters based on flags
@@ -83,9 +82,8 @@ func main() {
 		internal.StoreCommand()
 	case "erase":
 		if !internal.AllowErase {
-			log.Fatalf("To enable erasing credentials, use the -erase true flag")
 			flag.Usage()
-			os.Exit(2)
+			log.Fatalf("To enable erasing credentials, use the -erase true flag")
 		}
 		internal.EraseCommand()
 	default:

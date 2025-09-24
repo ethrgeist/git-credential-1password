@@ -13,7 +13,7 @@ func StoreCommand() {
 		// run "op item create" command with the host value
 		userStr := fmt.Sprintf("%s=%s", UsernameField, gitInputs["username"])
 		pwStr := fmt.Sprintf("%s=%s", PasswordField, gitInputs["password"])
-		cmd := buildOpItemCommand("create", "--category=Login", "--tags="+TAG_MARKER, "--title="+itemName(gitInputs["host"]), "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], userStr, pwStr)
+		cmd := buildOpItemCommand("create", "--category=Login", "--tags="+TagMarker, "--title="+itemName(gitInputs["host"]), "--url="+gitInputs["protocol"]+"://"+gitInputs["host"], userStr, pwStr)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			log.Fatalf("op item create failed with %s %s", err, output)

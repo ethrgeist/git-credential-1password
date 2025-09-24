@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// GetCommand retrieves and prints the username and password from a 1Password item based on git input parameters.
 func GetCommand() {
 	// git sends the input to stdin
 	gitInputs := ReadLines()

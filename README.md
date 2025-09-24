@@ -25,21 +25,21 @@ The [arguments](https://git-scm.com/docs/gitcredentials) `get`, `store`, and `er
 
 ### 🚧 Why Go?
 
-It's portable and very lightweight, so it's easy to build and run on different systems. Also it's a compiled language,
+It's portable and very lightweight, so it's easy to build and run on different systems. Also, it's a compiled language,
 so you don't have to worry about the user having the correct runtime installed.
 
 ### 📦 Why no binary releases?
 
-I don't want to distribute binaries that could be used to steal your 1Password data and i don't want you to have to trust me.
+I don't want to distribute binaries that could be used to steal your 1Password data and I don't want you to have to trust me.
 
 The program logic is very simple and commented, so you can easily audit the code.
 
-Also it's effort to ensure that builds run on different systems, signing binaries and so on.
+Also, it's effort to ensure that builds run on different systems, signing binaries and so on.
 
 ### 🔄 Alternatives?
 
 If your target system uses Oauth, you might want to try [git-credential-oauth](https://github.com/hickford/git-credential-oauth),
-although it is a bit more complex to setup.
+although it is a bit more complex to set up.
 
 ## 🏗️ Installation
 

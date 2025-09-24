@@ -19,7 +19,7 @@ var (
 )
 
 const (
-	TAG_MARKER = "git-credential-1password"
+	TagMarker = "git-credential-1password"
 )
 
 // OpItemField is a field in the output of "op item get --format json" command
@@ -90,7 +90,7 @@ func buildOpItemCommand(subcommand string, args ...string) *exec.Cmd {
 
 // opListItems runs "op list items --format json" command to get all items with their ids
 func opListItems() (*OpItemListResult, error) {
-	cmd := buildOpItemCommand("list", "--categories", "login", "--format", "json", "--tags", TAG_MARKER)
+	cmd := buildOpItemCommand("list", "--categories", "login", "--format", "json", "--tags", TagMarker)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("opListItems failed with %s\n%s", err, output)

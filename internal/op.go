@@ -93,7 +93,7 @@ func opListItems() (*OpItemListResult, error) {
 	cmd := buildOpItemCommand("list", "--categories", "login", "--format", "json", "--tags", TAG_MARKER)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("opListItems failed with %s\n%+s", err, output)
+		return nil, fmt.Errorf("opListItems failed with %s\n%s", err, output)
 	}
 
 	var result OpItemListResult
@@ -111,7 +111,7 @@ func opGetItem(n string) (OpItem, error) {
 	opItemGet := buildOpItemCommand("get", "--format", "json", "--reveal", "--fields", fields, n)
 	opItemRaw, err := opItemGet.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("opItemGet failed with %s\n%+s", err, opItemRaw)
+		return nil, fmt.Errorf("opItemGet failed with %s\n%s", err, opItemRaw)
 	}
 
 	// marshal the raw output to OpItem struct

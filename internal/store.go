@@ -33,7 +33,7 @@ func StoreCommand() {
 		// notes:
 		//   we don't set --tags here as our marker must be present already if the item was found and there might be other tags present
 		//   we don't set --title here as the user might have renamed the item
-		//   we don't set --url here as we use it to find the item and theirfore it must be correct already
+		//   we don't set --url here as we use it to find the item, and therefore it must be correct already
 		userStr := fmt.Sprintf("%s=%s", UsernameField, gitInputs["username"])
 		pwStr := fmt.Sprintf("%s=%s", PasswordField, gitInputs["password"])
 		cmd := buildOpItemCommand("edit", *itemId, userStr, pwStr)

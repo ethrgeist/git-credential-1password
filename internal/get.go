@@ -6,6 +6,7 @@ import (
 	"os"
 )
 
+// GetCommand retrieves and prints the username and password from a 1Password item based on git input parameters.
 func GetCommand() {
 	// git sends the input to stdin
 	gitInputs := ReadLines()
@@ -35,6 +36,5 @@ func GetCommand() {
 	if username == "" || password == "" {
 		log.Fatalf("username or password is empty, is the item named correctly?")
 	}
-	fmt.Printf("username=%s\n", username)
-	fmt.Printf("password=%s\n", password)
+	fmt.Printf("username=%s\npassword=%s\n\n", username, password)
 }

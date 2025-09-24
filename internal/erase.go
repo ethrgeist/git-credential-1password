@@ -1,5 +1,6 @@
 package internal
 
+// EraseCommand deletes a 1Password item based on the provided git input parameters.
 func EraseCommand() {
 	gitInputs := ReadLines()
 

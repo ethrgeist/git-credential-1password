@@ -2,6 +2,7 @@ package internal
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"os"
 	"strings"
@@ -11,26 +12,33 @@ import (
 func ReadLines() (inputs map[string]string) {
 	inputs = make(map[string]string)
 	// create stdin reader
-	reader := bufio.NewReader(os.Stdin)
+	r := bufio.NewReader(os.Stdin)
+	w := bufio.NewWriter(os.Stdout)
+	defer w.Flush()
 
 	for {
 		// line by line read from stdin
-		line, _ := reader.ReadString('\n')
-
-		// if the line is empty, break the loop
-		if line == "" || line == "\n" {
+		line, err := r.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+		line = strings.TrimRight(line, "\r\n")
+		if line == "" {
 			break
 		}
 
-		// create a slice of strings by splitting the line
-		parts := strings.SplitN(line, "=", 2)
-
-		// see if this can a key value pair
-		if len(parts) == 2 {
-			inputs[strings.TrimSpace(parts[0])] = strings.TrimSpace(parts[1])
-		} else {
+		// split the line by the first '=' and create a key value pair
+		key, val, ok := strings.Cut(line, "=")
+		if !ok {
 			log.Fatalf("Invalid input: %s", line)
 		}
+		key = strings.TrimSpace(key)
+		val = strings.TrimSpace(val)
+
+		inputs[key] = val
 	}
 	return inputs
 }

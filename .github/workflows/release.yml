@@ -123,5 +123,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
-          files: dist/*
-          overwrite: true
+          artifacts: "dist/*"
+          allowUpdates: true
+          replacesArtifacts: true

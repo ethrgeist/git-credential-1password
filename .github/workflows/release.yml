@@ -5,11 +5,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+  workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag name to build (e.g. v1.3.0). If set, workflow will build that tag.'
-        required: false
-        default: ''
+        description: 'Tag name to build (e.g. v1.3.0). Required for manual runs.'
+        required: true
 
 permissions:
   contents: write
@@ -97,7 +97,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: binaries-${{ matrix.goos }}-${{ matrix.arch }}
+          name: binaries-${{ matrix.goos }}-${{ matrix.arch }}-${{ github.run_id }}
           path: dist/*
 
   release:

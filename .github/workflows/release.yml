@@ -57,6 +57,7 @@ jobs:
           architecture: ${{ matrix.setup_arch }}
 
       - name: Build binary
+        shell: bash
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
@@ -80,6 +81,7 @@ jobs:
           "$BIN" -version
 
       - name: List built files
+        shell: bash
         run: ls -la dist || true
 
   release:

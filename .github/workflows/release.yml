@@ -18,22 +18,32 @@ jobs:
           - os: ubuntu-latest
             goos: linux
             arch: amd64
+            setup_arch: x64
+            testable: true
             ext: ""
           - os: ubuntu-latest
             goos: linux
             arch: arm64
+            setup_arch: x64
+            testable: false
             ext: ""
           - os: macos-latest
             goos: darwin
             arch: amd64
+            setup_arch: x64
+            testable: false
             ext: ""
           - os: macos-latest
             goos: darwin
             arch: arm64
+            setup_arch: arm64
+            testable: true
             ext: ""
           - os: windows-latest
             goos: windows
             arch: amd64
+            setup_arch: x64
+            testable: true
             ext: .exe
 
     steps:
@@ -44,30 +54,34 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: '1.21'
+          architecture: ${{ matrix.setup_arch }}
 
       - name: Build binary
+        shell: bash
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.arch }}
           CGO_ENABLED: 0
         run: |
-          mkdir -p dist/${{ matrix.goos }}-${{ matrix.arch }}
-          BIN=dist/${{ matrix.goos }}-${{ matrix.arch }}/git-credential-1password${{ matrix.ext }}
+          mkdir -p dist
+          BIN=dist/git-credential-1password-${{ matrix.goos }}-${{ matrix.arch }}${{ matrix.ext }}
           echo Building $BIN
           go build -ldflags "-s -w" -o "$BIN" .
 
       - name: Run basic functionality test
+        if: ${{ matrix.testable }}
         shell: bash
         run: |
           if [ "${{ matrix.goos }}" = "windows" ]; then
-            BIN=dist/${{ matrix.goos }}-${{ matrix.arch }}/git-credential-1password.exe
+            BIN=dist/git-credential-1password-${{ matrix.goos }}-${{ matrix.arch }}.exe
           else
-            BIN=dist/${{ matrix.goos }}-${{ matrix.arch }}/git-credential-1password
+            BIN=dist/git-credential-1password-${{ matrix.goos }}-${{ matrix.arch }}
           fi
           echo "Running $BIN -version"
           "$BIN" -version
 
       - name: List built files
+        shell: bash
         run: ls -la dist || true
 
   release:
@@ -84,4 +98,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref_name }}
-          files: dist/**
+          files: dist/*

@@ -19,26 +19,31 @@ jobs:
             goos: linux
             arch: amd64
             setup_arch: x64
+            testable: true
             ext: ""
           - os: ubuntu-latest
             goos: linux
             arch: arm64
-            setup_arch: arm64
+            setup_arch: x64
+            testable: false
             ext: ""
           - os: macos-latest
             goos: darwin
             arch: amd64
             setup_arch: x64
+            testable: false
             ext: ""
           - os: macos-latest
             goos: darwin
             arch: arm64
             setup_arch: arm64
+            testable: true
             ext: ""
           - os: windows-latest
             goos: windows
             arch: amd64
             setup_arch: x64
+            testable: true
             ext: .exe
 
     steps:
@@ -63,6 +68,7 @@ jobs:
           go build -ldflags "-s -w" -o "$BIN" .
 
       - name: Run basic functionality test
+        if: ${{ matrix.testable }}
         shell: bash
         run: |
           if [ "${{ matrix.goos }}" = "windows" ]; then

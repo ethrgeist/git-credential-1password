@@ -1,0 +1,87 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} / ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            arch: amd64
+            ext: ""
+          - os: ubuntu-latest
+            goos: linux
+            arch: arm64
+            ext: ""
+          - os: macos-latest
+            goos: darwin
+            arch: amd64
+            ext: ""
+          - os: macos-latest
+            goos: darwin
+            arch: arm64
+            ext: ""
+          - os: windows-latest
+            goos: windows
+            arch: amd64
+            ext: .exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.arch }}
+          CGO_ENABLED: 0
+        run: |
+          mkdir -p dist/${{ matrix.goos }}-${{ matrix.arch }}
+          BIN=dist/${{ matrix.goos }}-${{ matrix.arch }}/git-credential-1password${{ matrix.ext }}
+          echo Building $BIN
+          go build -ldflags "-s -w" -o "$BIN" .
+
+      - name: Run basic functionality test
+        shell: bash
+        run: |
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            BIN=dist/${{ matrix.goos }}-${{ matrix.arch }}/git-credential-1password.exe
+          else
+            BIN=dist/${{ matrix.goos }}-${{ matrix.arch }}/git-credential-1password
+          fi
+          echo "Running $BIN -version"
+          "$BIN" -version
+
+      - name: List built files
+        run: ls -la dist || true
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload release assets and create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ github.ref_name }}
+          files: dist/**

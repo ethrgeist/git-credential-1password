@@ -34,6 +34,7 @@ func main() {
 	flag.StringVar(&internal.UsernameField, "username-field", "username", "What field to use for the username")
 	flag.StringVar(&internal.PasswordField, "password-field", "password", "What field to use for the password")
 	flag.BoolVar(&internal.AllowErase, "erase", false, "Allow erasing credentials")
+	flag.BoolVar(&internal.ReadOnly, "read-only", false, "Only allow reading credentials (disables store and erase)")
 	flag.StringVar(&internal.OpPath, "op-path", "", "Path to the op binary")
 	versionFlag := flag.Bool("version", false, "Print version")
 
@@ -79,8 +80,14 @@ func main() {
 	case "get":
 		internal.GetCommand()
 	case "store":
+		if internal.ReadOnly {
+			return
+		}
 		internal.StoreCommand()
 	case "erase":
+		if internal.ReadOnly {
+			return
+		}
 		if !internal.AllowErase {
 			flag.Usage()
 			log.Fatalf("To enable erasing credentials, use the -erase true flag")

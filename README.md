@@ -8,11 +8,12 @@ No external dependencies other than the `op` CLI - no runtime, no config files.
 Before using this helper, make sure:
 
 1. The [1Password CLI](https://support.1password.com/command-line-getting-started/) (`op`) is installed and configured. Verify with `op whoami`.
-2. Items that the helper should find **must**:
+2. Items that the helper should find **must** (when **not** using `--id`):
    - Have the **category** `Login` (default, configurable via `--category`).
    - Be **tagged** `git-credential-1password` (hardcoded, not configurable - this is a safety measure so the helper never touches unrelated items).
    - Have a **URL** field that exactly matches `protocol://host` (e.g. `https://github.com`).
 3. The item **name does not matter** for lookup - only the URL is used. The name is cosmetic (set to `[prefix]host` when the helper creates an item).
+4. When using `--id`, the helper skips the tag/URL lookup entirely and fetches the item by its unique 1Password ID. The item does not need to be tagged or have a matching URL.
 
 Items created by the helper automatically get the correct category, tag, and URL - you only need to worry about the above when managing items manually.
 
@@ -48,6 +49,12 @@ Or scope it to a single host:
 git config --global credential.https://gitlab.example.net.helper "1password"
 ```
 
+Or pin a specific 1Password item by its unique ID (rename-proof, works for multiple hostnames):
+
+```bash
+git config --global credential.https://git.example.xyz.helper "1password --account=my --vault=Family --id=m5jcyagohuo7usjc76fkpiwuum"
+```
+
 The helper supports the standard Git credential operations: `get`, `store`, and `erase`.
 
 When you push to a host that requires authentication, 1Password will prompt you to unlock your vault and then supply the stored credentials.
@@ -65,6 +72,7 @@ When you push to a host that requires authentication, 1Password will prompt you 
 | `--erase`          | `false`        | **⚠️ Danger** - enable erase (deletes the matching 1Password item!) |
 | `--read-only`      | `false`        | Disable store and erase - get only                                  |
 | `--op-path`        | _(auto)_       | Path to the `op` binary (if not in PATH)                            |
+| `--id`             | _(none)_       | 1Password item unique ID (bypasses URL-based lookup)                |
 | `--version`        | -              | Print version and exit                                              |
 
 All flags work with both `-` and `--` prefix.
@@ -80,6 +88,7 @@ git config --global credential.helper "1password --account=myaccount --vault='De
 - _Account:_ Sometimes using the account email doesn't work - try the account ID instead.
 - _Tokens:_ Providers like [GitHub require a personal access token](https://docs.github.com/en/get-started/git-basics/about-remote-repositories#cloning-with-https-urls) instead of a password. Use `--password-field` to point at the field holding the token.
 - _Windows:_ The helper automatically uses `op.exe` on Windows. If you need `--op-path`, use forward slashes: `C:/path/to/op.exe`.
+- _Item ID:_ Use `--id` to pin a specific 1Password item by its unique ID. This bypasses URL-based lookup entirely, so renaming items or using multiple hostnames for the same credential won't break anything. Find the ID with `op item list` or in the 1Password app (item → "Copy Item UUID").
 
 ## How Items Are Matched
 

@@ -37,6 +37,7 @@ func main() {
 	flag.BoolVar(&internal.AllowErase, "erase", false, "Allow erasing credentials")
 	flag.BoolVar(&internal.ReadOnly, "read-only", false, "Only allow reading credentials (disables store and erase)")
 	flag.StringVar(&internal.OpPath, "op-path", "", "Path to the op binary")
+	flag.StringVar(&internal.ItemID, "id", "", "1Password item unique ID (bypasses URL-based lookup)")
 	versionFlag := flag.Bool("version", false, "Print version")
 
 	flag.Usage = func() {

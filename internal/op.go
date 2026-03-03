@@ -18,6 +18,7 @@ var (
 	AllowErase    bool
 	ReadOnly      bool
 	OpPath        string
+	ItemID        string
 	OpItemFlags   []string
 )
 
@@ -129,6 +130,12 @@ func opGetItem(n string) (OpItem, error) {
 
 // findItemId finds the item id for a given host
 func findItemId(protocol string, host string) *string {
+	// If an explicit item ID was provided via --id, use it directly
+	// and skip the list+filter lookup entirely.
+	if ItemID != "" {
+		return &ItemID
+	}
+
 	itemList, err := opListItems()
 	if err != nil {
 		log.Fatalf("op item list failed with %s", err)

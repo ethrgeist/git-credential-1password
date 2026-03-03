@@ -11,6 +11,7 @@ import (
 var (
 	Account       string
 	Vault         string
+	Category      string
 	Prefix        string
 	UsernameField string
 	PasswordField string
@@ -94,7 +95,7 @@ func buildOpItemCommand(subcommand string, args ...string) *exec.Cmd {
 
 // opListItems runs "op list items --format json" command to get all items with their ids
 func opListItems() (*OpItemListResult, error) {
-	cmd := buildOpItemCommand("list", "--categories", "login", "--format", "json", "--tags", TagMarker)
+	cmd := buildOpItemCommand("list", "--categories", Category, "--format", "json", "--tags", TagMarker)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("opListItems failed with %s\n%s", err, output)

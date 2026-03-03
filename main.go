@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -89,12 +90,19 @@ func main() {
 	// ref: https://git-scm.com/docs/gitcredentials
 	switch args[0] {
 	case "get":
-		internal.GetCommand()
+		if err := internal.GetCommand(os.Stdin, os.Stdout); err != nil {
+			if errors.Is(err, internal.ErrNotFound) {
+				os.Exit(1)
+			}
+			log.Fatalf("%s", err)
+		}
 	case "store":
 		if internal.ReadOnly {
 			return
 		}
-		internal.StoreCommand()
+		if err := internal.StoreCommand(os.Stdin); err != nil {
+			log.Fatalf("%s", err)
+		}
 	case "erase":
 		if internal.ReadOnly {
 			return
@@ -103,7 +111,9 @@ func main() {
 			flag.Usage()
 			log.Fatalf("To enable erasing credentials, use the -erase true flag")
 		}
-		internal.EraseCommand()
+		if err := internal.EraseCommand(os.Stdin); err != nil {
+			log.Fatalf("%s", err)
+		}
 	default:
 		// unknown argument
 		log.Fatalf("It doesn't look like anything to me. (Unknown argument: %s)\n", args[0])

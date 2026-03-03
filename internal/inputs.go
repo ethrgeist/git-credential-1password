@@ -2,43 +2,45 @@ package internal
 
 import (
 	"bufio"
+	"fmt"
 	"io"
-	"log"
-	"os"
 	"strings"
 )
 
-// ReadLines reads the input from stdin and returns a map of key value pairs
-func ReadLines() (inputs map[string]string) {
-	inputs = make(map[string]string)
-	// create stdin reader
-	r := bufio.NewReader(os.Stdin)
-	w := bufio.NewWriter(os.Stdout)
-	defer w.Flush()
+// ReadLines reads the input from a reader and returns a map of key value pairs.
+// Input follows the git credential helper protocol: key=value lines terminated by
+// a blank line or EOF.
+func ReadLines(r io.Reader) (map[string]string, error) {
+	inputs := make(map[string]string)
+	br := bufio.NewReader(r)
 
 	for {
-		// line by line read from stdin
-		line, err := r.ReadString('\n')
+		line, err := br.ReadString('\n')
 		if err == io.EOF {
+			// Process any remaining content before EOF
+			line = strings.TrimRight(line, "\r\n")
+			if line != "" {
+				key, val, ok := strings.Cut(line, "=")
+				if !ok {
+					return nil, fmt.Errorf("invalid input: %s", line)
+				}
+				inputs[strings.TrimSpace(key)] = strings.TrimSpace(val)
+			}
 			break
 		}
 		if err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 		line = strings.TrimRight(line, "\r\n")
 		if line == "" {
 			break
 		}
 
-		// split the line by the first '=' and create a key value pair
 		key, val, ok := strings.Cut(line, "=")
 		if !ok {
-			log.Fatalf("Invalid input: %s", line)
+			return nil, fmt.Errorf("invalid input: %s", line)
 		}
-		key = strings.TrimSpace(key)
-		val = strings.TrimSpace(val)
-
-		inputs[key] = val
+		inputs[strings.TrimSpace(key)] = strings.TrimSpace(val)
 	}
-	return inputs
+	return inputs, nil
 }

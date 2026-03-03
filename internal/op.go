@@ -3,7 +3,6 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os/exec"
 	"runtime"
 )
@@ -25,6 +24,22 @@ var (
 const (
 	TagMarker = "git-credential-1password"
 )
+
+// OpRunner is the interface for interacting with the 1Password CLI.
+type OpRunner interface {
+	ListItems() (*OpItemListResult, error)
+	GetItem(id string) (OpItem, error)
+	CreateItem(args ...string) ([]byte, error)
+	EditItem(args ...string) ([]byte, error)
+	DeleteItem(id string) error
+}
+
+// Runner is the package-level OpRunner used by command functions.
+// It defaults to ExecOpRunner which calls the real op CLI.
+var Runner OpRunner = &ExecOpRunner{}
+
+// ExecOpRunner implements OpRunner by executing the op CLI.
+type ExecOpRunner struct{}
 
 // OpItemField is a field in the output of "op item get --format json" command
 // we are only interested in key value pairs from fields as label and value
@@ -94,57 +109,72 @@ func buildOpItemCommand(subcommand string, args ...string) *exec.Cmd {
 	return exec.Command(opCommand(), cmdArgs...)
 }
 
-// opListItems runs "op list items --format json" command to get all items with their ids
-func opListItems() (*OpItemListResult, error) {
+// ListItems runs "op item list --format json" command to get all items with their ids.
+func (e *ExecOpRunner) ListItems() (*OpItemListResult, error) {
 	cmd := buildOpItemCommand("list", "--categories", Category, "--format", "json", "--tags", TagMarker)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("opListItems failed with %s\n%s", err, output)
+		return nil, fmt.Errorf("op item list failed: %s\n%s", err, output)
 	}
 
 	var result OpItemListResult
 	if err = json.Unmarshal(output, &result); err != nil {
-		return nil, fmt.Errorf("json.Unmarshal() failed with %s", err)
+		return nil, fmt.Errorf("json.Unmarshal() failed: %s", err)
 	}
 
 	return &result, nil
 }
 
-// opGetItem runs "op item get --format json" command with the given name
-func opGetItem(n string) (OpItem, error) {
-	// --fields username,password limits the output to only username and password
+// GetItem runs "op item get --format json" command with the given id.
+func (e *ExecOpRunner) GetItem(id string) (OpItem, error) {
 	fields := fmt.Sprintf("%s,%s", UsernameField, PasswordField)
-	opItemGet := buildOpItemCommand("get", "--format", "json", "--reveal", "--fields", fields, n)
-	opItemRaw, err := opItemGet.CombinedOutput()
+	cmd := buildOpItemCommand("get", "--format", "json", "--reveal", "--fields", fields, id)
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("opItemGet failed with %s\n%s", err, opItemRaw)
+		return nil, fmt.Errorf("op item get failed: %s\n%s", err, output)
 	}
 
-	// marshal the raw output to OpItem struct
 	var opItem OpItem
-	if err = json.Unmarshal(opItemRaw, &opItem); err != nil {
-		return nil, fmt.Errorf("json.Unmarshal() failed with %s", err)
+	if err = json.Unmarshal(output, &opItem); err != nil {
+		return nil, fmt.Errorf("json.Unmarshal() failed: %s", err)
 	}
 	return opItem, nil
 }
 
-// findItemId finds the item id for a given host
-func findItemId(protocol string, host string) *string {
+// CreateItem runs "op item create" command.
+func (e *ExecOpRunner) CreateItem(args ...string) ([]byte, error) {
+	cmd := buildOpItemCommand("create", args...)
+	return cmd.CombinedOutput()
+}
+
+// EditItem runs "op item edit" command.
+func (e *ExecOpRunner) EditItem(args ...string) ([]byte, error) {
+	cmd := buildOpItemCommand("edit", args...)
+	return cmd.CombinedOutput()
+}
+
+// DeleteItem runs "op item delete" command.
+func (e *ExecOpRunner) DeleteItem(id string) error {
+	return buildOpItemCommand("delete", id).Run()
+}
+
+// findItemId finds the item id for a given host.
+func findItemId(protocol string, host string) (*string, error) {
 	// If an explicit item ID was provided via --id, use it directly
 	// and skip the list+filter lookup entirely.
 	if ItemID != "" {
-		return &ItemID
+		return &ItemID, nil
 	}
 
-	itemList, err := opListItems()
+	itemList, err := Runner.ListItems()
 	if err != nil {
-		log.Fatalf("op item list failed with %s", err)
+		return nil, fmt.Errorf("op item list failed: %w", err)
 	}
 
 	item := itemList.FindByURL(protocol + "://" + host)
 	if item == nil {
-		return nil
+		return nil, nil
 	}
 
-	return &item.Id
+	return &item.Id, nil
 }

@@ -54,18 +54,18 @@ When you push to a host that requires authentication, 1Password will prompt you 
 
 ## Flags
 
-| Flag | Default | Description |
-| ---- | ------- | ----------- |
-| `--account` | *(op default)* | 1Password account to use |
-| `--vault` | *(op default)* | 1Password vault to use |
-| `--category` | `Login` | 1Password item category (e.g. `Login`, `API Credential`) |
-| `--prefix` | *(none)* | Prefix for item names, e.g. `Git:·` → `Git: github.com` |
-| `--username-field` | `username` | Field name to read/write the username |
-| `--password-field` | `password` | Field name to read/write the password or token |
-| `--erase` | `false` | **⚠️ Danger** - enable erase (deletes the matching 1Password item!) |
-| `--read-only` | `false` | Disable store and erase - get only |
-| `--op-path` | *(auto)* | Path to the `op` binary (if not in PATH) |
-| `--version` | - | Print version and exit |
+| Flag               | Default        | Description                                                         |
+| ------------------ | -------------- | ------------------------------------------------------------------- |
+| `--account`        | _(op default)_ | 1Password account to use                                            |
+| `--vault`          | _(op default)_ | 1Password vault to use                                              |
+| `--category`       | `Login`        | 1Password item category (e.g. `Login`, `API Credential`)            |
+| `--prefix`         | _(none)_       | Prefix for item names, e.g. `Git:·` → `Git: github.com`             |
+| `--username-field` | `username`     | Field name to read/write the username                               |
+| `--password-field` | `password`     | Field name to read/write the password or token                      |
+| `--erase`          | `false`        | **⚠️ Danger** - enable erase (deletes the matching 1Password item!) |
+| `--read-only`      | `false`        | Disable store and erase - get only                                  |
+| `--op-path`        | _(auto)_       | Path to the `op` binary (if not in PATH)                            |
+| `--version`        | -              | Print version and exit                                              |
 
 All flags work with both `-` and `--` prefix.
 
@@ -77,9 +77,9 @@ git config --global credential.helper "1password --account=myaccount --vault='De
 
 **Notes:**
 
-- *Account:* Sometimes using the account email doesn't work - try the account ID instead.
-- *Tokens:* Providers like [GitHub require a personal access token](https://docs.github.com/en/get-started/git-basics/about-remote-repositories#cloning-with-https-urls) instead of a password. Use `--password-field` to point at the field holding the token.
-- *Windows:* The helper automatically uses `op.exe` on Windows. If you need `--op-path`, use forward slashes: `C:/path/to/op.exe`.
+- _Account:_ Sometimes using the account email doesn't work - try the account ID instead.
+- _Tokens:_ Providers like [GitHub require a personal access token](https://docs.github.com/en/get-started/git-basics/about-remote-repositories#cloning-with-https-urls) instead of a password. Use `--password-field` to point at the field holding the token.
+- _Windows:_ The helper automatically uses `op.exe` on Windows. If you need `--op-path`, use forward slashes: `C:/path/to/op.exe`.
 
 ## How Items Are Matched
 
@@ -108,7 +108,7 @@ git config --global credential.helper "1password --account=myaccount --vault='De
 Portable, compiles to a single binary, no runtime required. The code is small enough to audit in minutes.
 
 **Why no binary releases?**
-To avoid trust issues - you build it yourself and can verify every line. Signing and cross-platform CI is also non-trivial for a project this small.
+To avoid trust issues - you build it yourself and can verify every line. Signing is also costly for a project this small.
 
 **Alternatives?**
 For OAuth flows, see [git-credential-oauth](https://github.com/hickford/git-credential-oauth).
@@ -116,7 +116,7 @@ For OAuth flows, see [git-credential-oauth](https://github.com/hickford/git-cred
 **My items are "API Credential", not "Login" - why doesn't it work?**
 By default the helper only searches `Login` items. Pass `--category='API Credential'` to match a different category.
 
-**Nix / Gentoo?**
+**Other Forms of distribution?**
 A `flake.nix` is included (`nix build`). A Gentoo ebuild is available via [benknoble's overlay](https://github.com/benknoble/benknoble-gentoo-overlay). Both are community-contributed and not officially supported.
 
 ## Contributing

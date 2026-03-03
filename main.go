@@ -30,6 +30,7 @@ func PrintVersion() {
 func main() {
 	flag.StringVar(&internal.Account, "account", "", "1Password account (default: op CLI's default)")
 	flag.StringVar(&internal.Vault, "vault", "", "1Password vault (default: op CLI's default)")
+	flag.StringVar(&internal.Category, "category", "Login", "1Password item category to search (e.g. Login, API Credential)")
 	flag.StringVar(&internal.Prefix, "prefix", "", "1Password item name prefix")
 	flag.StringVar(&internal.UsernameField, "username-field", "username", "What field to use for the username")
 	flag.StringVar(&internal.PasswordField, "password-field", "password", "What field to use for the password")
@@ -68,6 +69,11 @@ func main() {
 	if internal.UsernameField == "" || internal.PasswordField == "" {
 		flag.Usage()
 		log.Fatalf("username and password field must be set")
+	}
+
+	if internal.Category == "" {
+		flag.Usage()
+		log.Fatalf("category must be set")
 	}
 
 	// set op cli parameters based on flags

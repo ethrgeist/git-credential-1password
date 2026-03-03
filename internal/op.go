@@ -15,6 +15,7 @@ var (
 	UsernameField string
 	PasswordField string
 	AllowErase    bool
+	ReadOnly      bool
 	OpPath        string
 	OpItemFlags   []string
 )

@@ -28,8 +28,8 @@ func PrintVersion() {
 }
 
 func main() {
-	flag.StringVar(&internal.Account, "account", "my", "1Password account")
-	flag.StringVar(&internal.Vault, "vault", "Private", "1Password vault")
+	flag.StringVar(&internal.Account, "account", "", "1Password account (default: op CLI's default)")
+	flag.StringVar(&internal.Vault, "vault", "", "1Password vault (default: op CLI's default)")
 	flag.StringVar(&internal.Prefix, "prefix", "", "1Password item name prefix")
 	flag.StringVar(&internal.UsernameField, "username-field", "username", "What field to use for the username")
 	flag.StringVar(&internal.PasswordField, "password-field", "password", "What field to use for the password")
@@ -71,8 +71,12 @@ func main() {
 	}
 
 	// set op cli parameters based on flags
-	internal.OpItemFlags = append(internal.OpItemFlags, "--account", internal.Account)
-	internal.OpItemFlags = append(internal.OpItemFlags, "--vault", internal.Vault)
+	if internal.Account != "" {
+		internal.OpItemFlags = append(internal.OpItemFlags, "--account", internal.Account)
+	}
+	if internal.Vault != "" {
+		internal.OpItemFlags = append(internal.OpItemFlags, "--vault", internal.Vault)
+	}
 
 	// git provides argument via stdin
 	// ref: https://git-scm.com/docs/gitcredentials

@@ -1,164 +1,128 @@
 # git-credential-1password
 
-This is a simple Git credential helper that uses the [1Password](https://1password.com/) password manager to retrieve credentials.
+A Git [credential helper](https://git-scm.com/docs/gitcredentials) that stores and retrieves credentials using [1Password](https://1password.com/) via the [1Password CLI](https://developer.1password.com/docs/cli/).
+No external dependencies other than the `op` CLI - no runtime, no config files.
 
-During my professional work, I came across git servers that did not support SSH and, as a result, did not support SSH keys.
-In order to avoid [storing passwords in plaintext](https://stackoverflow.com/questions/35942754/how-can-i-save-username-and-password-in-git/35942890#35942890)
-in the git configuration, I decided to use a password manager to save my credentials.
+## Requirements
 
-Seriously, do not do that! any run-away-script could grab these and exfiltrate them in various ways, since the `.gitconfig` is
-usually in a well-defined place.
+Before using this helper, make sure:
 
-## 🔐 Features
+1. The [1Password CLI](https://support.1password.com/command-line-getting-started/) (`op`) is installed and configured. Verify with `op whoami`.
+2. Items that the helper should find **must**:
+   - Have the **category** `Login` (default, configurable via `--category`).
+   - Be **tagged** `git-credential-1password` (hardcoded, not configurable - this is a safety measure so the helper never touches unrelated items).
+   - Have a **URL** field that exactly matches `protocol://host` (e.g. `https://github.com`).
+3. The item **name does not matter** for lookup - only the URL is used. The name is cosmetic (set to `[prefix]host` when the helper creates an item).
 
-This credential helper expects a 1Password item with the following fields:
+Items created by the helper automatically get the correct category, tag, and URL - you only need to worry about the above when managing items manually.
 
-- `username`: The username to use for authentication.
-- `password`: The password to use for authentication, could also be a personal access token.
+## Installation
 
-Item name must the same as the hostname of the repository you are authenticating against, e.g. `github.com` or
-`gitlab.example.net`. If the credentials are unknown, a new item will be created.
-
-The [arguments](https://git-scm.com/docs/gitcredentials) `get`, `store`, and `erase` are supported.
-
-**⚠️ Danger: `erase` will remove the 1Password item matching the hostname! It's disabled by default, see optional configuration**
-
-### 🚧 Why Go?
-
-It's portable and very lightweight, so it's easy to build and run on different systems. Also, it's a compiled language,
-so you don't have to worry about the user having the correct runtime installed.
-
-### 📦 Why no binary releases?
-
-I don't want to distribute binaries that could be used to steal your 1Password data and I don't want you to have to trust me.
-
-The program logic is very simple and commented, so you can easily audit the code.
-
-Also, it's effort to ensure that builds run on different systems, signing binaries and so on.
-
-### 🔄 Alternatives?
-
-If your target system uses Oauth, you might want to try [git-credential-oauth](https://github.com/hickford/git-credential-oauth),
-although it is a bit more complex to set up.
-
-## 🏗️ Installation
-
-Clone this repository and build the binary, simplest way could be:
+Clone and build:
 
 ```bash
 go build -o git-credential-1password
 ```
 
-Then copy the binary to a directory in your PATH.
+Copy the binary to a directory in your `PATH`.
 
-You must have installed and configured the [1Password CLI](https://support.1password.com/command-line-getting-started/)
-for this to work.
-
-You can test the 1Password CLI by running:
+Verify Git can find it:
 
 ```bash
-op whoami
+git credential-1password --version
 ```
 
-This should prompt you to unlock your vault and then print account information.
+If you have problems, make sure the binary is [in your PATH](https://superuser.com/a/284351/62691) and [is executable](https://askubuntu.com/a/229592/18504).
 
-This helper has no external dependencies other than the 1Password CLI.
+## Usage
 
-Verify that `git` can find the helper by running:
-
-```bash
-git credential-1password
-```
-
-If you have problems, make sure that the binary is [located in the path](https://superuser.com/a/284351/62691) and
-[is executable](https://askubuntu.com/a/229592/18504).
-
-## ⚙️ Usage
-
-*Fun fact: Did you know that you can use the [default Golang flags](https://www.antoniojgutierrez.com/posts/2021-05-14-short-and-long-options-in-go-flags-pkg/) with `-` and `--`? Well, now you do!*
-
-To use this credential helper, you need to configure Git to use it. You can do this by running:
+Set as the global credential helper:
 
 ```bash
 git config --global credential.helper "1password"
 ```
 
-Depending on your setup, it might be a better strategy to just set it as helper for a single host:
+Or scope it to a single host:
 
 ```bash
 git config --global credential.https://gitlab.example.net.helper "1password"
 ```
 
-Then, when you push to a repository that requires authentication, 1Password will prompt you to unlock your vault and will
-then use the credentials stored in the item with the same name as the hostname.
+The helper supports the standard Git credential operations: `get`, `store`, and `erase`.
 
-*Note: Depending on your OS, you might get prompted in different ways for your credentials.*
+When you push to a host that requires authentication, 1Password will prompt you to unlock your vault and then supply the stored credentials.
 
-## Optional Configuration
+## Flags
 
-If you want to use a specific account or vault, you can add `--account` and/or `--vault` to the command line arguments. If omitted,
-the default account and vault will be used.
+| Flag               | Default        | Description                                                         |
+| ------------------ | -------------- | ------------------------------------------------------------------- |
+| `--account`        | _(op default)_ | 1Password account to use                                            |
+| `--vault`          | _(op default)_ | 1Password vault to use                                              |
+| `--category`       | `Login`        | 1Password item category (e.g. `Login`, `API Credential`)            |
+| `--prefix`         | _(none)_       | Prefix for item names, e.g. `Git:·` → `Git: github.com`             |
+| `--username-field` | `username`     | Field name to read/write the username                               |
+| `--password-field` | `password`     | Field name to read/write the password or token                      |
+| `--erase`          | `false`        | **⚠️ Danger** - enable erase (deletes the matching 1Password item!) |
+| `--read-only`      | `false`        | Disable store and erase - get only                                  |
+| `--op-path`        | _(auto)_       | Path to the `op` binary (if not in PATH)                            |
+| `--version`        | -              | Print version and exit                                              |
 
-```bash
-git config --global credential.helper "1password --account=myaccount --vault='myvault with spaces'"
-```
+All flags work with both `-` and `--` prefix.
 
-*Note: Sometimes accessing a vault by the account mail address does not work, so you might have to use the account ID.*
-
-`erase` is disabled by default, as it will remove the matching 1Password item. If you want to enable it, you can
-add `-erase=true` to the command line arguments.
-
-```bash
-git config --global credential.helper "1password --erase=true"
-```
-
-You can also add a `--prefix` argument, to prefix all item names with a specific string. (i.e. use `--prefix="Git: "` to
-use `Git: gitlab.com` as the item name instead of `gitlab.com`).
+Example with multiple flags:
 
 ```bash
-git config --global credential.helper "1password --prefix='Git: '"
+git config --global credential.helper "1password --account=myaccount --vault='Dev Vault' --category='API Credential' --prefix='Git: '"
 ```
 
-In case you want to use a different field name for the username or password, you can use the `--username-field` and
-`--password-field` arguments.
+**Notes:**
 
-```bash
-git config --global credential.helper "1password --username-field='email' --password-field='pass'"
-```
+- _Account:_ Sometimes using the account email doesn't work - try the account ID instead.
+- _Tokens:_ Providers like [GitHub require a personal access token](https://docs.github.com/en/get-started/git-basics/about-remote-repositories#cloning-with-https-urls) instead of a password. Use `--password-field` to point at the field holding the token.
+- _Windows:_ The helper automatically uses `op.exe` on Windows. If you need `--op-path`, use forward slashes: `C:/path/to/op.exe`.
 
-Since providers might require a personal access token instead of a password, you can use the `--password-field` argument
-to access the token.
+## How Items Are Matched
 
-E.g., [GitHub requires a personal access token](https://docs.github.com/en/get-started/git-basics/about-remote-repositories#cloning-with-https-urls)
-instead of a password since [August 2021](https://github.blog/changelog/2021-08-12-git-password-authentication-is-shutting-down/).
+### Get
 
-In case your `op` binary is not in the PATH, you can use the `--op-path` argument to specify the path to the `op` binary.
+1. Lists items filtered by **category** + **tag** `git-credential-1password` (scoped to account/vault if set).
+2. Finds the item whose URL field exactly matches `protocol://host`.
+3. Returns `username` and `password` fields.
+4. If no match is found, exits with code 1 (no output) - Git will try the next credential helper in the chain.
 
-```bash
-git config --global credential.helper "1password --op-path='/usr/local/bin/op'"
-```
+### Store
 
-*Note: On Windows, you must use forward slashes `/` in the path, e.g., `C:/temp/op.exe`, for Git to provide it to the credential helper.*
+1. Searches for an existing item (same rules as Get).
+2. If found **and** the username or password changed → updates the item (only the credential fields; title, URL, and tags are left untouched).
+3. If not found → creates a new item with the configured category, tag, URL, title, and credentials.
 
-## How items in 1Password items are selected
+### Erase
 
-### Reading credentials
+1. Requires the `--erase` flag (disabled by default).
+2. If a matching item is found → deletes it.
+3. Both `store` and `erase` are silently skipped when `--read-only` is set.
 
-The helper looks for items
+## FAQ
 
-- in the selected Vault and Account
-- AND that have the tag `git-credential-1password`
-- AND that match protocol and host of the requested URL in the `url` field
+**Why Go?**
+Portable, compiles to a single binary, no runtime required. The code is small enough to audit in minutes.
 
-### Storing credentials
+**Why no binary releases?**
+To avoid trust issues - you build it yourself and can verify every line. Signing is also costly for a project this small.
 
-- When the helper can find an item according to the rules above, it will update the `username` and `password` fields of the item if they changed.
-- Otherwise, it will create a new item with `url`, `username`, `password` fields, a `git-credential-1password` tag.
+**Alternatives?**
+For OAuth flows, see [git-credential-oauth](https://github.com/hickford/git-credential-oauth).
 
-## 🌳 Collaboration
+**My items are "API Credential", not "Login" - why doesn't it work?**
+By default the helper only searches `Login` items. Pass `--category='API Credential'` to match a different category.
+
+**Other Forms of distribution?**
+A `flake.nix` is included (`nix build`). A Gentoo ebuild is available via [benknoble's overlay](https://github.com/benknoble/benknoble-gentoo-overlay). Both are community-contributed and not officially supported.
+
+## Contributing
 
 Feel free to open issues or pull requests.
 
-## 💌 Inspiration
+## Inspiration
 
-This project was inspired by [git-credential-oauth](https://github.com/hickford/git-credential-oauth)
+This project was inspired by [git-credential-oauth](https://github.com/hickford/git-credential-oauth).

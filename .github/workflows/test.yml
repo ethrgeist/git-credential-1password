@@ -31,3 +31,17 @@ jobs:
 
       - name: Test
         run: go test -v -count=1 ./...
+
+  # keeps flake.nix/flake.lock working without the maintainer needing Nix
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: cachix/install-nix-action@v31
+
+      - name: Build
+        run: nix build .#default -L
+
+      - name: Smoke test
+        run: ./result/bin/git-credential-1password --version

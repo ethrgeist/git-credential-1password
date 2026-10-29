@@ -29,6 +29,10 @@ func PrintVersion() {
 }
 
 func main() {
+	// git shows our stderr to the user; timestamps are noise there
+	log.SetFlags(0)
+	log.SetPrefix("git-credential-1password: ")
+
 	flag.StringVar(&internal.Account, "account", "", "1Password account (default: op CLI's default)")
 	flag.StringVar(&internal.Vault, "vault", "", "1Password vault (default: op CLI's default)")
 	flag.StringVar(&internal.Category, "category", "Login", "1Password item category to search (e.g. Login, API Credential)")
@@ -107,9 +111,10 @@ func main() {
 		if internal.ReadOnly {
 			return
 		}
+		// git calls erase on its own after a failed login, so this is not a usage error
 		if !internal.AllowErase {
-			flag.Usage()
-			log.Fatalf("To enable erasing credentials, use the -erase true flag")
+			log.Print("erase skipped, use the --erase flag to allow erasing credentials")
+			return
 		}
 		if err := internal.EraseCommand(os.Stdin); err != nil {
 			log.Fatalf("%s", err)

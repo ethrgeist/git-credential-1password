@@ -2,22 +2,40 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
-// buildBinary builds the test binary and returns its path.
+// testBinary is built once in TestMain and shared by all tests.
+var testBinary string
+
+func TestMain(m *testing.M) {
+	dir, err := os.MkdirTemp("", "git-credential-1password-test")
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+	testBinary = filepath.Join(dir, "git-credential-1password.exe")
+	output, err := exec.Command("go", "build", "-o", testBinary, ".").CombinedOutput()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "failed to build binary: %v\n%s", err, output)
+		os.RemoveAll(dir)
+		os.Exit(1)
+	}
+
+	code := m.Run()
+	os.RemoveAll(dir)
+	os.Exit(code)
+}
+
+// buildBinary returns the path of the binary built in TestMain.
 func buildBinary(t *testing.T) string {
 	t.Helper()
-	binary := filepath.Join(t.TempDir(), "git-credential-1password.exe")
-	cmd := exec.Command("go", "build", "-o", binary, ".")
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		t.Fatalf("failed to build binary: %v\n%s", err, output)
-	}
-	return binary
+	return testBinary
 }
 
 func TestVersionFlag(t *testing.T) {
@@ -95,11 +113,24 @@ func TestEraseWithoutFlag(t *testing.T) {
 	cmd := exec.Command(binary, "erase")
 	cmd.Stdin = strings.NewReader("protocol=https\nhost=example.com\n\n")
 	output, err := cmd.CombinedOutput()
-	if err == nil {
-		t.Fatal("expected error, got nil")
+	// git runs erase by itself after a failed login, so this must not fail
+	if err != nil {
+		t.Fatalf("unexpected error: %v\n%s", err, output)
 	}
-	if !strings.Contains(string(output), "-erase true") {
-		t.Errorf("output = %q, want to contain '-erase true'", output)
+	if !strings.Contains(string(output), "--erase") {
+		t.Errorf("output = %q, want to contain '--erase'", output)
+	}
+	if strings.Contains(string(output), "usage:") {
+		t.Errorf("output = %q, want no usage text", output)
+	}
+}
+
+func TestErrorsHaveNoTimestamp(t *testing.T) {
+	binary := buildBinary(t)
+	cmd := exec.Command(binary, "unknown")
+	output, _ := cmd.CombinedOutput()
+	if !strings.HasPrefix(string(output), "git-credential-1password: ") {
+		t.Errorf("output = %q, want to start with 'git-credential-1password: '", output)
 	}
 }
 

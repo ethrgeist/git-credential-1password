@@ -107,7 +107,7 @@ git config --global credential.helper "1password --account=myaccount --vault='De
 
 ### Erase
 
-1. Requires the `--erase` flag (disabled by default).
+1. Requires the `--erase` flag (disabled by default). Without it, erase is skipped with a one-line notice (Git calls erase on its own after a failed login).
 2. If a matching item is found → deletes it.
 3. Both `store` and `erase` are silently skipped when `--read-only` is set.
 

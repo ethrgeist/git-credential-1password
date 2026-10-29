@@ -1,10 +1,12 @@
 package internal
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os/exec"
 	"runtime"
+	"strings"
 )
 
 var (
@@ -109,17 +111,31 @@ func buildOpItemCommand(subcommand string, args ...string) *exec.Cmd {
 	return exec.Command(opCommand(), cmdArgs...)
 }
 
+// runOp runs cmd and returns its stdout. stderr is kept separate so warnings
+// printed by op cannot corrupt JSON output; on failure it is added to the error.
+func runOp(cmd *exec.Cmd) ([]byte, error) {
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	output, err := cmd.Output()
+	if err != nil {
+		if msg := strings.TrimSpace(stderr.String()); msg != "" {
+			return nil, fmt.Errorf("%w: %s", err, msg)
+		}
+		return nil, err
+	}
+	return output, nil
+}
+
 // ListItems runs "op item list --format json" command to get all items with their ids.
 func (e *ExecOpRunner) ListItems() (*OpItemListResult, error) {
-	cmd := buildOpItemCommand("list", "--categories", Category, "--format", "json", "--tags", TagMarker)
-	output, err := cmd.CombinedOutput()
+	output, err := runOp(buildOpItemCommand("list", "--categories", Category, "--format", "json", "--tags", TagMarker))
 	if err != nil {
-		return nil, fmt.Errorf("op item list failed: %s\n%s", err, output)
+		return nil, err
 	}
 
 	var result OpItemListResult
 	if err = json.Unmarshal(output, &result); err != nil {
-		return nil, fmt.Errorf("json.Unmarshal() failed: %s", err)
+		return nil, fmt.Errorf("json.Unmarshal() failed: %w", err)
 	}
 
 	return &result, nil
@@ -128,34 +144,32 @@ func (e *ExecOpRunner) ListItems() (*OpItemListResult, error) {
 // GetItem runs "op item get --format json" command with the given id.
 func (e *ExecOpRunner) GetItem(id string) (OpItem, error) {
 	fields := fmt.Sprintf("%s,%s", UsernameField, PasswordField)
-	cmd := buildOpItemCommand("get", "--format", "json", "--reveal", "--fields", fields, id)
-	output, err := cmd.CombinedOutput()
+	output, err := runOp(buildOpItemCommand("get", "--format", "json", "--reveal", "--fields", fields, id))
 	if err != nil {
-		return nil, fmt.Errorf("op item get failed: %s\n%s", err, output)
+		return nil, err
 	}
 
 	var opItem OpItem
 	if err = json.Unmarshal(output, &opItem); err != nil {
-		return nil, fmt.Errorf("json.Unmarshal() failed: %s", err)
+		return nil, fmt.Errorf("json.Unmarshal() failed: %w", err)
 	}
 	return opItem, nil
 }
 
 // CreateItem runs "op item create" command.
 func (e *ExecOpRunner) CreateItem(args ...string) ([]byte, error) {
-	cmd := buildOpItemCommand("create", args...)
-	return cmd.CombinedOutput()
+	return runOp(buildOpItemCommand("create", args...))
 }
 
 // EditItem runs "op item edit" command.
 func (e *ExecOpRunner) EditItem(args ...string) ([]byte, error) {
-	cmd := buildOpItemCommand("edit", args...)
-	return cmd.CombinedOutput()
+	return runOp(buildOpItemCommand("edit", args...))
 }
 
 // DeleteItem runs "op item delete" command.
 func (e *ExecOpRunner) DeleteItem(id string) error {
-	return buildOpItemCommand("delete", id).Run()
+	_, err := runOp(buildOpItemCommand("delete", id))
+	return err
 }
 
 // findItemId finds the item id for a given host.

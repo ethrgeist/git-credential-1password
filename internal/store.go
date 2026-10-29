@@ -12,6 +12,14 @@ func StoreCommand(r io.Reader) error {
 		return fmt.Errorf("reading input: %w", err)
 	}
 
+	if gitInputs["host"] == "" {
+		return fmt.Errorf("host is missing in the input")
+	}
+	// git itself never stores partial credentials, neither do we
+	if gitInputs["username"] == "" || gitInputs["password"] == "" {
+		return nil
+	}
+
 	itemId, err := findItemId(gitInputs["protocol"], gitInputs["host"])
 	if err != nil {
 		return err

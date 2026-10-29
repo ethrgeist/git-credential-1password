@@ -132,6 +132,33 @@ func TestGetCommand(t *testing.T) {
 		}
 	})
 
+	t.Run("newline or NUL in value", func(t *testing.T) {
+		for _, password := range []string{"secret\nhost=evil.example", "secret\x00"} {
+			m := &mockRunner{
+				listItemsResult: &OpItemListResult{
+					{Id: "item-1", URLs: []struct {
+						Href string `json:"href,omitempty"`
+					}{{Href: "https://github.com"}}},
+				},
+				getItemResult: OpItem{
+					{Label: "username", Value: "alice"},
+					{Label: "password", Value: password},
+				},
+			}
+			setupTest(t, m)
+
+			input := "protocol=https\nhost=github.com\n\n"
+			var buf bytes.Buffer
+			err := GetCommand(strings.NewReader(input), &buf)
+			if err == nil {
+				t.Fatalf("password %q: expected error, got nil", password)
+			}
+			if buf.Len() != 0 {
+				t.Errorf("password %q: output = %q, want empty", password, buf.String())
+			}
+		}
+	})
+
 	t.Run("empty password", func(t *testing.T) {
 		m := &mockRunner{
 			listItemsResult: &OpItemListResult{

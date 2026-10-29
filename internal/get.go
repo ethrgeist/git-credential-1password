@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 )
 
 // ErrNotFound indicates that the credential was not found in 1Password.
@@ -43,6 +44,10 @@ func GetCommand(r io.Reader, w io.Writer) error {
 	password := opItem.GetField(PasswordField)
 	if username == "" || password == "" {
 		return fmt.Errorf("username or password is empty, is the item named correctly?")
+	}
+	// a newline or NUL would end the value early and inject extra keys into git's input
+	if strings.ContainsAny(username, "\n\x00") || strings.ContainsAny(password, "\n\x00") {
+		return fmt.Errorf("username or password contains a newline or NUL character")
 	}
 	fmt.Fprintf(w, "username=%s\npassword=%s\n\n", username, password)
 	return nil

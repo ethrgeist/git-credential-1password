@@ -24,7 +24,7 @@ func StoreCommand(r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	if itemId == nil {
+	if itemId == "" {
 		// run "op item create" command with the host value
 		userStr := fmt.Sprintf("%s=%s", UsernameField, gitInputs["username"])
 		pwStr := fmt.Sprintf("%s=%s", PasswordField, gitInputs["password"])
@@ -41,7 +41,7 @@ func StoreCommand(r io.Reader) error {
 		return nil
 	}
 
-	item, err := Runner.GetItem(*itemId)
+	item, err := Runner.GetItem(itemId)
 	if err != nil {
 		return fmt.Errorf("op item get failed: %w", err)
 	}
@@ -56,7 +56,7 @@ func StoreCommand(r io.Reader) error {
 		//   we don't set --url here as we use it to find the item, and therefore it must be correct already
 		userStr := fmt.Sprintf("%s=%s", UsernameField, gitInputs["username"])
 		pwStr := fmt.Sprintf("%s=%s", PasswordField, gitInputs["password"])
-		_, err := Runner.EditItem(*itemId, userStr, pwStr)
+		_, err := Runner.EditItem(itemId, userStr, pwStr)
 		if err != nil {
 			return fmt.Errorf("op item edit failed: %w", err)
 		}

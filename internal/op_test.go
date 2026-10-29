@@ -2,7 +2,6 @@ package internal
 
 import (
 	"fmt"
-	"runtime"
 	"testing"
 )
 
@@ -188,21 +187,7 @@ func TestOpCommand(t *testing.T) {
 		expected string
 	}{
 		{"custom path", "/usr/local/bin/op", "/usr/local/bin/op"},
-	}
-
-	// Add OS-specific test
-	if runtime.GOOS == "windows" {
-		tests = append(tests, struct {
-			name     string
-			opPath   string
-			expected string
-		}{"default on windows", "", "op.exe"})
-	} else {
-		tests = append(tests, struct {
-			name     string
-			opPath   string
-			expected string
-		}{"default on non-windows", "", "op"})
+		{"default from PATH", "", "op"},
 	}
 
 	for _, tt := range tests {
@@ -277,7 +262,7 @@ func TestFindItemId(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if id == nil || *id != "explicit-id" {
+		if id != "explicit-id" {
 			t.Errorf("findItemId() = %v, want 'explicit-id'", id)
 		}
 	})
@@ -296,7 +281,7 @@ func TestFindItemId(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if id == nil || *id != "found-id" {
+		if id != "found-id" {
 			t.Errorf("findItemId() = %v, want 'found-id'", id)
 		}
 	})
@@ -315,8 +300,8 @@ func TestFindItemId(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if id != nil {
-			t.Errorf("findItemId() = %v, want nil", *id)
+		if id != "" {
+			t.Errorf("findItemId() = %q, want empty", id)
 		}
 	})
 
@@ -342,8 +327,8 @@ func TestFindItemId(t *testing.T) {
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		if id != nil {
-			t.Errorf("findItemId() = %v, want nil", *id)
+		if id != "" {
+			t.Errorf("findItemId() = %q, want empty", id)
 		}
 	})
 }

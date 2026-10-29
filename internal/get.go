@@ -29,12 +29,12 @@ func GetCommand(r io.Reader, w io.Writer) error {
 		return err
 	}
 	// if the host is not found, we return ErrNotFound
-	if itemId == nil {
+	if itemId == "" {
 		return ErrNotFound
 	}
 
 	// fetch the item from 1password using the id
-	opItem, err := Runner.GetItem(*itemId)
+	opItem, err := Runner.GetItem(itemId)
 	if err != nil {
 		return fmt.Errorf("op item get failed: %w", err)
 	}

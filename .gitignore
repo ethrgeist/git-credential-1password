@@ -23,3 +23,6 @@ go.work
 # ignore default binary outputs from go build
 git-credential-1password
 git-credential-1password.exe
+
+# goreleaser output
+dist/

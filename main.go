@@ -11,16 +11,20 @@ import (
 	"github.com/ethrgeist/git-credential-1password/internal"
 )
 
-// versioning is not yet implemented
-var version = "main"
+// version is set for release builds via -ldflags "-X main.version=..."
+var version string
 
-// getVersion returns the version of the binary
+// getVersion returns the version of the binary. Without ldflags it falls back
+// to the module version Go embeds (the tag for `go install ...@vX.Y.Z`,
+// a VCS-based pseudo-version for local builds).
 func getVersion() string {
-	info, ok := debug.ReadBuildInfo()
-	if ok && version == "main" {
-		version = info.Main.Version
+	if version != "" {
+		return version
 	}
-	return version
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
+		return info.Main.Version
+	}
+	return "(devel)"
 }
 
 // PrintVersion prints the version of the binary

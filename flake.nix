@@ -24,10 +24,15 @@
         let
           pkgs = nixpkgsFor.${system};
         in
-        {
-          git-credential-1password = pkgs.buildGoModule {
+        rec {
+          # The default package for 'nix build'. This makes sense if the
+          # flake provides only one package or there is a clear "main"
+          # package.
+          default = git-credential-1password;
+
+          git-credential-1password = pkgs.buildGo127Module {
             pname = "git-credential-1password";
-	    version = "1.0.0";
+            version = "1.0.0";
             # In 'nix develop', we don't need a copy of the source tree
             # in the Nix store.
             src = ./.;
@@ -53,13 +58,8 @@
         in
         {
           default = pkgs.mkShell {
-            buildInputs = with pkgs; [ go gopls gotools go-tools ];
+            buildInputs = with pkgs; [ go_1_27 gopls gotools go-tools ];
           };
         });
-
-      # The default package for 'nix build'. This makes sense if the
-      # flake provides only one package or there is a clear "main"
-      # package.
-      defaultPackage = forAllSystems (system: self.packages.${system}.git-credential-1password);
     };
 }

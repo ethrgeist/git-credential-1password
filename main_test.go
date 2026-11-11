@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"os/exec"
 	"path/filepath"
 	"strings"
@@ -38,7 +39,7 @@ func TestNoArguments(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	exitErr, ok := err.(*exec.ExitError)
+	exitErr, ok := errors.AsType[*exec.ExitError](err)
 	if !ok {
 		t.Fatalf("expected ExitError, got %T", err)
 	}
@@ -109,7 +110,7 @@ func TestTooManyArguments(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
-	exitErr, ok := err.(*exec.ExitError)
+	exitErr, ok := errors.AsType[*exec.ExitError](err)
 	if !ok {
 		t.Fatalf("expected ExitError, got %T", err)
 	}

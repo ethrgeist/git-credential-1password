@@ -49,11 +49,26 @@ func TestReadLines(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:  "whitespace trimming",
-			input: " protocol = https \n host = github.com \n\n",
+			name:  "keys trimmed",
+			input: " protocol =https\n host =github.com\n\n",
 			want: map[string]string{
 				"protocol": "https",
 				"host":     "github.com",
+			},
+		},
+		{
+			name:  "values kept literally",
+			input: "username= alice\npassword= a b \n\n",
+			want: map[string]string{
+				"username": " alice",
+				"password": " a b ",
+			},
+		},
+		{
+			name:  "values kept literally EOF terminated",
+			input: "password=\tsecret ",
+			want: map[string]string{
+				"password": "\tsecret ",
 			},
 		},
 		{

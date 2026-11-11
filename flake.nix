@@ -30,9 +30,10 @@
           # package.
           default = git-credential-1password;
 
-          git-credential-1password = pkgs.buildGo127Module {
+          git-credential-1password = pkgs.buildGo127Module rec {
             pname = "git-credential-1password";
-            version = "1.0.0";
+            version = "1.6.0";
+            ldflags = [ "-s" "-w" "-X main.version=${version}" ];
             # In 'nix develop', we don't need a copy of the source tree
             # in the Nix store.
             src = ./.;

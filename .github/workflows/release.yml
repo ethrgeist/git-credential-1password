@@ -19,13 +19,26 @@ jobs:
         with:
           fetch-depth: 0 # goreleaser needs tags for the changelog
 
-      - uses: actions/setup-go@v6
+      # the binary reports the Cargo.toml version, so the tag must match it
+      - name: Check tag matches Cargo.toml version
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match Cargo.toml version $version"
+            exit 1
+          fi
+
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          go-version-file: go.mod
-          cache: false
+          targets: x86_64-unknown-linux-musl,aarch64-unknown-linux-musl,x86_64-apple-darwin,aarch64-apple-darwin,x86_64-pc-windows-gnu,aarch64-pc-windows-gnullvm
+
+      - uses: mlugg/setup-zig@v2
+
+      - name: Install cargo-zigbuild
+        run: cargo install --locked cargo-zigbuild
 
       - name: Test
-        run: go test -count=1 ./...
+        run: cargo test --locked
 
       - uses: goreleaser/goreleaser-action@v6
         with:

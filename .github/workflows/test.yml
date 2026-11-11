@@ -18,19 +18,62 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v6
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          go-version-file: go.mod
-          cache: false
+          components: clippy, rustfmt
 
-      - name: Build
-        run: go build ./...
+      - uses: Swatinem/rust-cache@v2
 
-      - name: Vet
-        run: go vet ./...
+      - name: Format
+        run: cargo fmt --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
 
       - name: Test
-        run: go test -v -count=1 ./...
+        run: cargo test --locked
+
+  msrv:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dtolnay/rust-toolchain@1.85
+
+      - name: Check
+        run: cargo check --all-targets --locked
+
+  # builds every release target the way the release workflow does, so a
+  # broken cross build shows up in the PR instead of on tag push
+  release-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-musl,aarch64-unknown-linux-musl,x86_64-apple-darwin,aarch64-apple-darwin,x86_64-pc-windows-gnu,aarch64-pc-windows-gnullvm
+
+      - uses: mlugg/setup-zig@v2
+
+      - name: Install cargo-zigbuild
+        run: cargo install --locked cargo-zigbuild
+
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          distribution: goreleaser
+          version: "~> v2"
+          args: release --snapshot --clean
+
+      - name: Check archives and static Linux binary
+        run: |
+          ls dist/*.tar.gz dist/*.zip
+          test "$(ls dist/*.tar.gz dist/*.zip | wc -l)" -eq 6
+          bin=$(find dist -path '*x86_64-unknown-linux-musl*' -name git-credential-1password -type f | head -1)
+          file "$bin" | grep -q 'statically linked'
+          "$bin" --version
 
   # keeps flake.nix/flake.lock working without the maintainer needing Nix
   nix:

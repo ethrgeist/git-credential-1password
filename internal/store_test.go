@@ -221,6 +221,44 @@ func TestStoreCommand(t *testing.T) {
 		}
 	})
 
+	t.Run("missing host", func(t *testing.T) {
+		m := &mockRunner{
+			listItemsResult: &OpItemListResult{},
+		}
+		setupTest(t, m)
+
+		input := "protocol=https\nusername=alice\npassword=secret\n\n"
+		err := StoreCommand(strings.NewReader(input))
+		if err == nil {
+			t.Fatal("expected error, got nil")
+		}
+		if !strings.Contains(err.Error(), "host is missing") {
+			t.Errorf("error = %q, want to contain 'host is missing'", err)
+		}
+		if len(m.createItemCalledWith) != 0 {
+			t.Errorf("CreateItem called %d times, want 0", len(m.createItemCalledWith))
+		}
+	})
+
+	t.Run("skip partial credentials", func(t *testing.T) {
+		for _, input := range []string{
+			"protocol=https\nhost=github.com\nusername=alice\n\n",
+			"protocol=https\nhost=github.com\npassword=secret\n\n",
+		} {
+			m := &mockRunner{
+				listItemsResult: &OpItemListResult{},
+			}
+			setupTest(t, m)
+
+			if err := StoreCommand(strings.NewReader(input)); err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if len(m.createItemCalledWith) != 0 || len(m.editItemCalledWith) != 0 {
+				t.Errorf("input %q: item created or edited, want no-op", input)
+			}
+		}
+	})
+
 	t.Run("with prefix in title", func(t *testing.T) {
 		m := &mockRunner{
 			listItemsResult: &OpItemListResult{},

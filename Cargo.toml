@@ -1,0 +1,33 @@
+[package]
+name = "git-credential-1password"
+version = "2.0.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Git credential helper that stores and retrieves credentials via the 1Password CLI"
+license = "MIT"
+repository = "https://github.com/ethrgeist/git-credential-1password"
+readme = "README.md"
+
+[dependencies]
+lexopt = "0.3.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+zeroize = { version = "1.9.1", features = ["serde"] }
+
+# has its own main(): doubles as the fake `op` binary
+[[test]]
+name = "fake_op"
+harness = false
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+missing_errors_doc = "allow"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

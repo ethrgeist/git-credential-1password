@@ -7,7 +7,7 @@ No external dependencies other than the `op` CLI - no runtime, no config files.
 
 Before using this helper, make sure:
 
-1. The [1Password CLI](https://support.1password.com/command-line-getting-started/) (`op`) is installed and configured. Verify with `op whoami`.
+1. The [1Password CLI](https://support.1password.com/command-line-getting-started/) (`op`) **2.4.0 or newer** is installed and configured. Verify with `op --version` and `op whoami`.
 2. Items that the helper should find **must** (when **not** using `--id`):
    - Have the **category** `Login` (default, configurable via `--category`).
    - Be **tagged** `git-credential-1password` (hardcoded, not configurable - this is a safety measure so the helper never touches unrelated items).
@@ -38,19 +38,29 @@ Because they are unsigned, the OS may block the first run:
 - **macOS**: remove the quarantine flag with `xattr -d com.apple.quarantine git-credential-1password`
 - **Windows**: SmartScreen may warn; choose "More info" → "Run anyway"
 
-### Install with Go
+### Install with Cargo
 
 ```bash
-go install github.com/ethrgeist/git-credential-1password@latest
+cargo install --locked --git https://github.com/ethrgeist/git-credential-1password
 ```
 
 ### Build from source
 
 ```bash
-go build -o git-credential-1password
+cargo build --release
 ```
 
-Copy the binary to a directory in your `PATH`.
+Copy `target/release/git-credential-1password` to a directory in your `PATH`.
+
+### Legacy Go version
+
+Up to v1.6.0 this helper was written in Go. [v1.6.0](https://github.com/ethrgeist/git-credential-1password/releases/tag/v1.6.0) is the last Go release and stays available for anyone who needs it:
+
+```bash
+go install github.com/ethrgeist/git-credential-1password@v1.6.0
+```
+
+v2.0.0 and later are written in Rust. Flags, git configuration and item matching are unchanged.
 
 Verify Git can find it:
 
@@ -128,7 +138,7 @@ git config --global credential.helper "1password --account=myaccount --vault='De
 
 1. Searches for an existing item (same rules as Get).
 2. If found **and** the username or password changed → updates the item (only the credential fields; title, URL, and tags are left untouched).
-3. If not found → creates a new item with the configured category, tag, URL, title, and credentials.
+3. If not found → creates a new item with the configured category, tag, URL, title, and credentials. The credentials are handed to `op` as a JSON item template on stdin, so they never show up in the process list.
 
 ### Erase
 
@@ -138,14 +148,17 @@ git config --global credential.helper "1password --account=myaccount --vault='De
 
 ## FAQ
 
-**Why Go?**
-Portable, compiles to a single binary, no runtime required. The code is small enough to audit in minutes.
+**Why Rust?**
+Portable, compiles to a small single binary, no runtime required, and secrets are wiped from memory after use. The code is small enough to audit in minutes. Versions up to v1.6.0 were written in Go (see [Legacy Go version](#legacy-go-version)).
 
 **Why are the binaries unsigned?**
 Code-signing certificates are costly for a project this small. Instead, every release ships with checksums and a GitHub build provenance attestation (see [Installation](#download-a-release)). If you'd rather not trust a binary at all, build it yourself - the code is small enough to read in minutes.
 
 **Is my password visible to other processes?**
-When storing credentials, the helper passes them to `op` as command-line arguments. Other users on the same machine can briefly see those in the process list (e.g. `ps`). Reading credentials (`get`) is not affected. Use `--read-only` if this matters on a shared machine.
+Reading credentials (`get`) and creating new items never put them on a command line: new items are piped to `op` as a JSON template on stdin.
+**Updating** an existing item (when git stores a changed password or token) still passes the new username and password to `op item edit` as command-line arguments, so other users on the same machine can briefly see them in the process list (e.g. `ps`).
+This is deliberate: `op item edit` can read an item as JSON from stdin, but [1Password documents](https://www.1password.dev/cli/reference/management-commands/item/) that editing with a JSON template **overwrites any passkey** on the item, and the item JSON offers no reliable way to detect one. Because items such as your main GitHub login may carry a passkey, the helper keeps argument-based edits until 1Password supports passkeys in JSON templates or makes them detectable.
+Use `--read-only` if this matters on a shared machine.
 
 **Alternatives?**
 For OAuth flows, see [git-credential-oauth](https://github.com/hickford/git-credential-oauth).

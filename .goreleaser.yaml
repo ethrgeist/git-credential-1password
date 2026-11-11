@@ -1,25 +1,31 @@
 # Release builds, run by .github/workflows/release.yml on tag push.
-# Local dry run: goreleaser release --snapshot --clean
+# Local dry run (needs zig and cargo-zigbuild): goreleaser release --snapshot --clean
 version: 2
 
 project_name: git-credential-1password
 
+before:
+  hooks:
+    - cargo fetch --locked
+
 builds:
-  - env:
-      - CGO_ENABLED=0
+  - builder: rust
+    command: zigbuild
     flags:
-      - -trimpath
-    ldflags:
-      - -s -w -X main.version={{ .Version }}
-    goos:
-      - linux
-      - darwin
-      - windows
-    goarch:
-      - amd64
-      - arm64
+      - --release
+      - --locked
+    targets:
+      # musl: fully static binaries
+      - x86_64-unknown-linux-musl
+      - aarch64-unknown-linux-musl
+      - x86_64-apple-darwin
+      - aarch64-apple-darwin
+      # gnu/gnullvm: no Visual C++ runtime needed
+      - x86_64-pc-windows-gnu
+      - aarch64-pc-windows-gnullvm
 
 archives:
+  # <name>_<version>_<os>_<arch>, as used by the README's verify instructions
   - name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
     formats: [tar.gz]
     format_overrides:
@@ -38,3 +44,4 @@ changelog:
     exclude:
       - "^docs:"
       - "^test:"
+      - "^chore\\(deps\\):"

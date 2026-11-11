@@ -1,65 +1,38 @@
 {
-  description = "A Nix flake for the git-credential-1password Go program";
+  description = "A Nix flake for the git-credential-1password Rust program";
 
-  # Nixpkgs / NixOS version to use.
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
   outputs = { self, nixpkgs }:
     let
-
-      # System types to support.
       supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
-
-      # Helper function to generate an attrset '{ x86_64-linux = f "x86_64-linux"; ... }'.
       forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
-
-      # Nixpkgs instantiated for supported system types.
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; });
-
+      cargoToml = nixpkgs.lib.importTOML ./Cargo.toml;
     in
     {
-
-      # Provide some binary packages for selected system types.
       packages = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
         in
         rec {
-          # The default package for 'nix build'. This makes sense if the
-          # flake provides only one package or there is a clear "main"
-          # package.
           default = git-credential-1password;
 
-          git-credential-1password = pkgs.buildGo127Module rec {
-            pname = "git-credential-1password";
-            version = "1.6.0";
-            ldflags = [ "-s" "-w" "-X main.version=${version}" ];
-            # In 'nix develop', we don't need a copy of the source tree
-            # in the Nix store.
+          git-credential-1password = pkgs.rustPlatform.buildRustPackage {
+            pname = cargoToml.package.name;
+            version = cargoToml.package.version;
             src = ./.;
-
-            # This hash locks the dependencies of this package. It is
-            # necessary because of how Go requires network access to resolve
-            # VCS.  See https://www.tweag.io/blog/2021-03-04-gomod2nix/ for
-            # details. Normally one can build with a fake hash and rely on native Go
-            # mechanisms to tell you what the hash should be or determine what
-            # it should be "out-of-band" with other tooling (eg. gomod2nix).
-            # To begin with it is recommended to set this, but one must
-            # remember to bump this hash when your dependencies change.
-            # vendorHash = pkgs.lib.fakeHash;
-
-            vendorHash = null;
+            cargoLock.lockFile = ./Cargo.lock;
           };
         });
 
-      # Add dependencies that are only needed for development
       devShells = forAllSystems (system:
         let
           pkgs = nixpkgsFor.${system};
         in
         {
           default = pkgs.mkShell {
-            buildInputs = with pkgs; [ go_1_27 gopls gotools go-tools ];
+            buildInputs = with pkgs; [ cargo rustc clippy rustfmt rust-analyzer ];
           };
         });
     };

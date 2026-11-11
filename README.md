@@ -19,7 +19,32 @@ Items created by the helper automatically get the correct category, tag, and URL
 
 ## Installation
 
-Clone and build:
+### Download a release
+
+Prebuilt binaries for Linux, macOS and Windows (amd64 and arm64) are on the [releases page](https://github.com/ethrgeist/git-credential-1password/releases). Download the archive for your platform, extract it and copy `git-credential-1password` to a directory in your `PATH`.
+
+The binaries are **not code-signed**. To check that a download is genuine:
+
+```bash
+# checksum (GitHub also shows each asset's SHA-256 on the releases page)
+sha256sum -c checksums.txt --ignore-missing
+
+# build provenance: proves the archive was built by this repo's release workflow
+gh attestation verify git-credential-1password_<version>_<os>_<arch>.tar.gz --repo ethrgeist/git-credential-1password
+```
+
+Because they are unsigned, the OS may block the first run:
+
+- **macOS**: remove the quarantine flag with `xattr -d com.apple.quarantine git-credential-1password`
+- **Windows**: SmartScreen may warn; choose "More info" → "Run anyway"
+
+### Install with Go
+
+```bash
+go install github.com/ethrgeist/git-credential-1password@latest
+```
+
+### Build from source
 
 ```bash
 go build -o git-credential-1password
@@ -116,8 +141,11 @@ git config --global credential.helper "1password --account=myaccount --vault='De
 **Why Go?**
 Portable, compiles to a single binary, no runtime required. The code is small enough to audit in minutes.
 
-**Why no binary releases?**
-To avoid trust issues - you build it yourself and can verify every line. Signing is also costly for a project this small.
+**Why are the binaries unsigned?**
+Code-signing certificates are costly for a project this small. Instead, every release ships with checksums and a GitHub build provenance attestation (see [Installation](#download-a-release)). If you'd rather not trust a binary at all, build it yourself - the code is small enough to read in minutes.
+
+**Is my password visible to other processes?**
+When storing credentials, the helper passes them to `op` as command-line arguments. Other users on the same machine can briefly see those in the process list (e.g. `ps`). Reading credentials (`get`) is not affected. Use `--read-only` if this matters on a shared machine.
 
 **Alternatives?**
 For OAuth flows, see [git-credential-oauth](https://github.com/hickford/git-credential-oauth).

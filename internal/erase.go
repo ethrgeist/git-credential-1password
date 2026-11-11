@@ -16,9 +16,9 @@ func EraseCommand(r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	if itemId != nil {
+	if itemId != "" {
 		// run "op delete item" command with the found item id
-		if err := Runner.DeleteItem(*itemId); err != nil {
+		if err := Runner.DeleteItem(itemId); err != nil {
 			return fmt.Errorf("op item delete failed: %w", err)
 		}
 	}

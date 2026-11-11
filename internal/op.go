@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
-	"runtime"
 	"strings"
 )
 
@@ -68,10 +67,10 @@ type OpItemListResult []OpItemListResultItem
 
 // FindByURL is the search result for a specific host
 func (r OpItemListResult) FindByURL(url string) *OpItemListResultItem {
-	for item := range r {
-		for _, urlItem := range r[item].URLs {
+	for i := range r {
+		for _, urlItem := range r[i].URLs {
 			if urlItem.Href == url {
-				return &r[item]
+				return &r[i]
 			}
 		}
 	}
@@ -95,12 +94,11 @@ func itemName(host string) string {
 
 // opCommand returns the path to the op binary
 func opCommand() string {
-	if OpPath == "" && runtime.GOOS == "windows" {
-		return "op.exe" // Default to using "op" from PATH, but with .exe suffix on Windows
-	} else if OpPath == "" {
-		return "op" // Default to using "op" from PATH
+	if OpPath != "" {
+		return OpPath
 	}
-	return OpPath
+	// looked up in PATH; on Windows exec also tries PATHEXT, finding op.exe
+	return "op"
 }
 
 // buildOpItemCommand builds an exec.Cmd for "op item" sub command including additional flags
@@ -172,23 +170,23 @@ func (e *ExecOpRunner) DeleteItem(id string) error {
 	return err
 }
 
-// findItemId finds the item id for a given host.
-func findItemId(protocol string, host string) (*string, error) {
+// findItemId finds the item id for a given host. It returns "" if no item matches.
+func findItemId(protocol string, host string) (string, error) {
 	// If an explicit item ID was provided via --id, use it directly
 	// and skip the list+filter lookup entirely.
 	if ItemID != "" {
-		return &ItemID, nil
+		return ItemID, nil
 	}
 
 	itemList, err := Runner.ListItems()
 	if err != nil {
-		return nil, fmt.Errorf("op item list failed: %w", err)
+		return "", fmt.Errorf("op item list failed: %w", err)
 	}
 
 	item := itemList.FindByURL(protocol + "://" + host)
 	if item == nil {
-		return nil, nil
+		return "", nil
 	}
 
-	return &item.Id, nil
+	return item.Id, nil
 }

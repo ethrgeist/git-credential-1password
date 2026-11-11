@@ -84,17 +84,11 @@ fn create(
     op::set_field(&mut item.0, &cfg.password_field, password, "CONCEALED")?;
     let stdin = item.to_json()?;
 
-    let category = format!("--category={}", cfg.category);
+    // no --category: the template carries it, and op rejects having both
     let tags = format!("--tags={TAG_MARKER}");
     let title = format!("--title={title}");
     let url = format!("--url={}", req.url());
-    op::create(
-        cfg,
-        op,
-        &[&category, &tags, &title, &url, "-"],
-        Some(&stdin),
-    )
-    .ctx("op item create failed")
+    op::create(cfg, op, &[&tags, &title, &url, "-"], Some(&stdin)).ctx("op item create failed")
 }
 
 pub fn erase(cfg: &Config, op: &dyn Op, req: &Request) -> Result<()> {
@@ -170,7 +164,6 @@ mod tests {
         [
             "item",
             "create",
-            "--category=Login",
             &format!("--tags={TAG_MARKER}"),
             &format!("--title={title}"),
             "--url=https://github.com",
@@ -407,7 +400,6 @@ mod tests {
                         args: [
                             "item",
                             "create",
-                            "--category=API Credential",
                             &format!("--tags={TAG_MARKER}"),
                             "--title=github.com",
                             "--url=https://github.com",
